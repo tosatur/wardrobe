@@ -157,15 +157,17 @@ function CalendarPageContent() {
                   !inMonth && "bg-muted/40",
                 )}
               >
-                <span
-                  className={cn(
-                    "font-mono text-xs",
-                    inMonth ? "text-foreground" : "text-muted-foreground/60",
-                  )}
-                >
-                  {day.getDate()}
-                </span>
-                <DayWeather weather={weatherByDay.get(key)} />
+                <div className="flex items-center justify-between">
+                  <span
+                    className={cn(
+                      "font-mono text-xs",
+                      inMonth ? "text-foreground" : "text-muted-foreground/60",
+                    )}
+                  >
+                    {day.getDate()}
+                  </span>
+                  <DayWeather weather={weatherByDay.get(key)} />
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {dayWears.slice(0, 2).map((wear) => (
                     <Link
