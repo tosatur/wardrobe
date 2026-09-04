@@ -18,14 +18,20 @@ import { Combobox } from "@/components/combobox";
 import { CategoryPicker } from "@/components/category-picker";
 import { ItemCard } from "@/components/item-card";
 import { ItemListRow } from "@/components/item-list-row";
+import { ItemSortSelect } from "@/components/item-sort-select";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
 import { HoverReticle, type Rect } from "@/components/hover-reticle";
 import { EmptyState } from "@/components/empty-state";
 import { listBrands, listItems, listTags } from "@/lib/items-client";
+import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
 import { cn } from "@/lib/utils";
 
 function isViewMode(value: string | null): value is ViewMode {
   return value === "masonry" || value === "grid" || value === "list";
+}
+
+function isSortOrder(value: string | null): value is ItemSortOrder {
+  return value === "newest" || value === "oldest" || value === "name-asc" || value === "name-desc";
 }
 
 function rectOf(el: HTMLElement): Rect {
@@ -51,6 +57,8 @@ function ItemsPageContent() {
   const tag = searchParams.get("tag") ?? "";
   const rawView = searchParams.get("view");
   const view: ViewMode = isViewMode(rawView) ? rawView : "masonry";
+  const rawSort = searchParams.get("sort");
+  const sort: ItemSortOrder = isSortOrder(rawSort) ? rawSort : "newest";
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -63,6 +71,7 @@ function ItemsPageContent() {
     queryKey: ["items", { q, categoryId, brandId, tag }],
     queryFn: () => listItems({ q, categoryId, brandId, tag }),
   });
+  const sortedItems = sortItems(items ?? [], sort);
 
   const { data: tags } = useQuery({ queryKey: ["tags"], queryFn: listTags });
   const { data: brands } = useQuery({ queryKey: ["brands"], queryFn: listBrands });
@@ -142,7 +151,7 @@ function ItemsPageContent() {
         </div>
       </div>
 
-      <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
+      <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
         <Input
           placeholder="Search…"
           defaultValue={q}
@@ -162,7 +171,7 @@ function ItemsPageContent() {
           value={tag || "all"}
           onValueChange={(v) => updateParam("tag", !v || v === "all" ? "" : v)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Tag" />
           </SelectTrigger>
           <SelectContent>
@@ -174,6 +183,11 @@ function ItemsPageContent() {
             ))}
           </SelectContent>
         </Select>
+        <ItemSortSelect
+          value={sort}
+          onChange={(next) => updateParam("sort", next)}
+          className="w-full"
+        />
       </div>
 
       {isPending && view === "list" && (
@@ -202,13 +216,13 @@ function ItemsPageContent() {
         </div>
       )}
 
-      {!isPending && items?.length === 0 && (
+      {!isPending && sortedItems.length === 0 && (
         <EmptyState>No items match your filters.</EmptyState>
       )}
 
-      {!isPending && items && items.length > 0 && view === "list" && (
+      {!isPending && sortedItems.length > 0 && view === "list" && (
         <div className="glass p-3">
-          {items.map((item) => (
+          {sortedItems.map((item) => (
             <ItemListRow key={item.id} item={item} />
           ))}
         </div>
@@ -218,7 +232,7 @@ function ItemsPageContent() {
           column and wrap, sized to their own photo's aspect ratio rather
           than a shared row height. A real grid for "grid": every cell the
           same size. */}
-      {!isPending && items && items.length > 0 && view !== "list" && (
+      {!isPending && sortedItems.length > 0 && view !== "list" && (
         <div
           className={cn(
             view === "masonry"
@@ -226,7 +240,7 @@ function ItemsPageContent() {
               : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4",
           )}
         >
-          {items.map((item) => (
+          {sortedItems.map((item) => (
             <ItemCard key={item.id} item={item} onHoverChange={handleHoverChange} variant={view} />
           ))}
         </div>

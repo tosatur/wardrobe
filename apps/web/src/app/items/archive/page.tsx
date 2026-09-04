@@ -7,16 +7,31 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Combobox } from "@/components/combobox";
+import { CategoryPicker } from "@/components/category-picker";
 import { ItemCard } from "@/components/item-card";
 import { ItemListRow } from "@/components/item-list-row";
+import { ItemSortSelect } from "@/components/item-sort-select";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
 import { EmptyState } from "@/components/empty-state";
-import { listItems } from "@/lib/items-client";
+import { listBrands, listItems, listTags } from "@/lib/items-client";
+import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
 import { cn } from "@/lib/utils";
 
 function isViewMode(value: string | null): value is ViewMode {
   return value === "masonry" || value === "grid" || value === "list";
+}
+
+function isSortOrder(value: string | null): value is ItemSortOrder {
+  return value === "newest" || value === "oldest" || value === "name-asc" || value === "name-desc";
 }
 
 export default function ItemArchivePage() {
@@ -31,8 +46,13 @@ function ItemArchivePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
+  const categoryId = searchParams.get("categoryId") ?? "";
+  const brandId = searchParams.get("brandId") ?? "";
+  const tag = searchParams.get("tag") ?? "";
   const rawView = searchParams.get("view");
   const view: ViewMode = isViewMode(rawView) ? rawView : "masonry";
+  const rawSort = searchParams.get("sort");
+  const sort: ItemSortOrder = isSortOrder(rawSort) ? rawSort : "newest";
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -42,9 +62,14 @@ function ItemArchivePageContent() {
   }
 
   const { data: items, isPending } = useQuery({
-    queryKey: ["items", { q, status: "archived" }],
-    queryFn: () => listItems({ q, status: "archived" }),
+    queryKey: ["items", { q, categoryId, brandId, tag, status: "archived" }],
+    queryFn: () => listItems({ q, categoryId, brandId, tag, status: "archived" }),
   });
+  const sortedItems = sortItems(items ?? [], sort);
+
+  const { data: tags } = useQuery({ queryKey: ["tags"], queryFn: listTags });
+  const { data: brands } = useQuery({ queryKey: ["brands"], queryFn: listBrands });
+  const brandOptions = (brands ?? []).map((b) => ({ value: b.id, label: b.name }));
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -63,11 +88,42 @@ function ItemArchivePageContent() {
         <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
       </div>
 
-      <div className="glass mb-6 p-3">
+      <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
         <Input
           placeholder="Search…"
           defaultValue={q}
           onChange={(e) => updateParam("q", e.target.value)}
+        />
+        <CategoryPicker
+          value={categoryId || null}
+          onChange={(id) => updateParam("categoryId", id)}
+        />
+        <Combobox
+          options={brandOptions}
+          value={brandId || null}
+          onChange={(id) => updateParam("brandId", id)}
+          placeholder="Search brands…"
+        />
+        <Select
+          value={tag || "all"}
+          onValueChange={(v) => updateParam("tag", !v || v === "all" ? "" : v)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Tag" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tags</SelectItem>
+            {tags?.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <ItemSortSelect
+          value={sort}
+          onChange={(next) => updateParam("sort", next)}
+          className="w-full"
         />
       </div>
 
@@ -95,21 +151,23 @@ function ItemArchivePageContent() {
         </div>
       )}
 
-      {!isPending && items?.length === 0 && (
+      {!isPending && sortedItems.length === 0 && (
         <EmptyState>
-          {q ? "No archived items match your search." : "You haven't archived any items."}
+          {q || categoryId || brandId || tag
+            ? "No archived items match your filters."
+            : "You haven't archived any items."}
         </EmptyState>
       )}
 
-      {!isPending && items && items.length > 0 && view === "list" && (
+      {!isPending && sortedItems.length > 0 && view === "list" && (
         <div className="glass p-3">
-          {items.map((item) => (
+          {sortedItems.map((item) => (
             <ItemListRow key={item.id} item={item} />
           ))}
         </div>
       )}
 
-      {!isPending && items && items.length > 0 && view !== "list" && (
+      {!isPending && sortedItems.length > 0 && view !== "list" && (
         <div
           className={cn(
             view === "masonry"
@@ -117,7 +175,7 @@ function ItemArchivePageContent() {
               : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4",
           )}
         >
-          {items.map((item) => (
+          {sortedItems.map((item) => (
             <ItemCard key={item.id} item={item} variant={view} />
           ))}
         </div>

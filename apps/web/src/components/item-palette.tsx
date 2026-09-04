@@ -6,31 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import type { ItemDto } from "@wardrobe/shared";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { CategoryPicker } from "@/components/category-picker";
+import { ItemSortSelect } from "@/components/item-sort-select";
 import { API_URL } from "@/lib/auth-client";
 import { listItems } from "@/lib/items-client";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
+import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
 import { cn } from "@/lib/utils";
-
-type SortOrder = "newest" | "oldest" | "name-asc" | "name-desc";
-
-function sortItems(items: ItemDto[], order: SortOrder): ItemDto[] {
-  const sorted = [...items];
-  const label = (item: ItemDto) => item.nickname ?? item.category.name;
-  switch (order) {
-    case "newest":
-      return sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    case "oldest":
-      return sorted.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-    case "name-asc":
-      return sorted.sort((a, b) => label(a).localeCompare(label(b)));
-    case "name-desc":
-      return sorted.sort((a, b) => label(b).localeCompare(label(a)));
-  }
-}
 
 function PaletteTile({ item, disabled }: { item: ItemDto; disabled: boolean }) {
   const [tileWidth, setTileWidth] = useState<number | null>(null);
@@ -89,7 +73,7 @@ function PaletteTile({ item, disabled }: { item: ItemDto; disabled: boolean }) {
 export function ItemPalette() {
   const [q, setQ] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [sort, setSort] = useState<SortOrder>("newest");
+  const [sort, setSort] = useState<ItemSortOrder>("newest");
 
   const { data: items, isPending } = useQuery({
     queryKey: ["items", { photoStatus: "ready", q, categoryId }],
@@ -134,17 +118,7 @@ export function ItemPalette() {
       <div className="flex flex-col gap-2">
         <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
         <CategoryPicker value={categoryId || null} onChange={setCategoryId} />
-        <Select value={sort} onValueChange={(v) => setSort(v as SortOrder)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest first</SelectItem>
-            <SelectItem value="oldest">Oldest first</SelectItem>
-            <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-            <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-          </SelectContent>
-        </Select>
+        <ItemSortSelect value={sort} onChange={setSort} className="w-full" />
       </div>
 
       {isPending && (
