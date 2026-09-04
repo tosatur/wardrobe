@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -62,8 +62,10 @@ function CalendarPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const month = parseMonthKey(searchParams.get("month"));
+  const [direction, setDirection] = useState<"next" | "prev">("next");
 
   function goToMonth(next: Date) {
+    setDirection(next > month ? "next" : "prev");
     router.replace(`/calendar?month=${toMonthKey(next)}`);
   }
 
@@ -147,7 +149,16 @@ function CalendarPageContent() {
       {isPending ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <div className="glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10">
+        // Keyed by month so switching months mounts a fresh element - the
+        // animate-in classes only play on mount, not on a prop update of
+        // the same element.
+        <div
+          key={toMonthKey(monthStart)}
+          className={cn(
+            "glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300",
+            direction === "next" ? "slide-in-from-right-8" : "slide-in-from-left-8",
+          )}
+        >
           {WEEKDAY_LABELS.map((label) => (
             <div
               key={label}
