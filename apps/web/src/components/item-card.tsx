@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ItemDto } from "@wardrobe/shared";
 import { API_URL } from "@/lib/auth-client";
 import { ItemCardMenu } from "@/components/item-card-menu";
+import { PhotoCaptionOverlay } from "@/components/photo-caption-overlay";
 import { cn } from "@/lib/utils";
 
 export function ItemCard({
@@ -69,12 +70,7 @@ export function ItemCard({
           </div>
         )}
 
-        {/* A gradient darken rather than a flat one, stronger near the
-            caption at the bottom, clear near the top. No blur: the photo
-            itself should stay sharp, only dimmed. */}
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/75 via-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100" />
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100">
+        <PhotoCaptionOverlay>
           <p className="font-heading text-sm font-black tracking-tight text-white">
             {item.nickname || item.category.name}
           </p>
@@ -83,7 +79,7 @@ export function ItemCard({
               {item.brand.name}
             </p>
           )}
-        </div>
+        </PhotoCaptionOverlay>
       </Link>
 
       <ItemCardMenu
