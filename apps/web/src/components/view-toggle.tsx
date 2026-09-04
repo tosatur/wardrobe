@@ -15,15 +15,19 @@ const MODES: { value: ViewMode; label: string; icon: typeof LayoutGrid }[] = [
 export function ViewToggle({
   value,
   onChange,
+  modes = ["masonry", "grid", "list"],
   className,
 }: {
   value: ViewMode;
   onChange: (mode: ViewMode) => void;
+  /** Which of the three modes to offer - outfit tiles are always square,
+   *  so "masonry" (variable-height columns) has nothing to offer there. */
+  modes?: ViewMode[];
   className?: string;
 }) {
   return (
     <div className={cn("flex gap-1", className)}>
-      {MODES.map(({ value: mode, label, icon: Icon }) => (
+      {MODES.filter((m) => modes.includes(m.value)).map(({ value: mode, label, icon: Icon }) => (
         <Button
           key={mode}
           type="button"
