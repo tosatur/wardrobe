@@ -33,6 +33,17 @@ function addMonths(date: Date, n: number) {
   return new Date(date.getFullYear(), date.getMonth() + n, 1);
 }
 
+const MAX_VISIBLE_WEARS = 4;
+
+// Shown tiles get smaller as more outfits share a day, so a busy day still
+// wraps into the cell instead of overflowing it.
+function wearTileSizeClass(count: number) {
+  if (count <= 1) return "size-16";
+  if (count === 2) return "size-12";
+  if (count <= MAX_VISIBLE_WEARS) return "size-10";
+  return "size-8";
+}
+
 export default function CalendarPage() {
   return (
     <Suspense fallback={null}>
@@ -175,20 +186,28 @@ function CalendarPageContent() {
                   </span>
                   <DayWeather weather={weatherByDay.get(key)} />
                 </div>
-                <div className="relative flex flex-wrap gap-1">
-                  {dayWears.slice(0, 2).map((wear) => (
+                <div className="relative flex flex-1 flex-wrap content-center items-center justify-center gap-1">
+                  {dayWears.slice(0, MAX_VISIBLE_WEARS).map((wear) => (
                     <Link
                       key={wear.id}
                       href={`/outfits/${wear.outfit.id}`}
                       title={wear.outfit.name}
-                      className="block size-9 shrink-0 overflow-hidden rounded-sm"
+                      className={cn(
+                        "block shrink-0 overflow-hidden rounded-sm",
+                        wearTileSizeClass(dayWears.length),
+                      )}
                     >
                       <OutfitCanvas readOnly items={wear.outfit.items} />
                     </Link>
                   ))}
-                  {dayWears.length > 2 && (
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-sm border border-border bg-muted text-[0.65rem] font-medium text-muted-foreground">
-                      +{dayWears.length - 2}
+                  {dayWears.length > MAX_VISIBLE_WEARS && (
+                    <span
+                      className={cn(
+                        "flex shrink-0 items-center justify-center rounded-sm border border-border bg-muted text-[0.65rem] font-medium text-muted-foreground",
+                        wearTileSizeClass(dayWears.length),
+                      )}
+                    >
+                      +{dayWears.length - MAX_VISIBLE_WEARS}
                     </span>
                   )}
                 </div>
