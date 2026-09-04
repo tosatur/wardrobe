@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -15,11 +15,13 @@ import { ItemCard } from "@/components/item-card";
 import { ItemListRow } from "@/components/item-list-row";
 import { ItemSortSelect } from "@/components/item-sort-select";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
-import { HoverReticle, type Rect } from "@/components/hover-reticle";
+import { HoverReticle } from "@/components/hover-reticle";
+import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { listBrands, listItems, listTags } from "@/lib/items-client";
 import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
+import { useHoverReticle } from "@/hooks/use-hover-reticle";
 import { cn } from "@/lib/utils";
 
 function isViewMode(value: string | null): value is ViewMode {
@@ -28,11 +30,6 @@ function isViewMode(value: string | null): value is ViewMode {
 
 function isSortOrder(value: string | null): value is ItemSortOrder {
   return value === "newest" || value === "oldest" || value === "name-asc" || value === "name-desc";
-}
-
-function rectOf(el: HTMLElement): Rect {
-  const { top, left, width, height } = el.getBoundingClientRect();
-  return { top, left, width, height };
 }
 
 export default function ItemsPage() {
@@ -78,62 +75,15 @@ function ItemsPageContent() {
   const brandOptions = (brands ?? []).map((b) => ({ value: b.id, label: b.name }));
   const tagOptions = (tags ?? []).map((t) => ({ value: t, label: t }));
 
-  const hoveredElRef = useRef<HTMLElement | null>(null);
-  const clearTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [hoverRect, setHoverRect] = useState<Rect | null>(null);
-
-  function handleHoverChange(el: HTMLElement | null) {
-    if (el) {
-      clearTimeout(clearTimer.current);
-      hoveredElRef.current = el;
-      setHoverRect(rectOf(el));
-    } else {
-      // Buffered so crossing the small gap between cards, where the mouse
-      // is briefly over neither, doesn't commit "nothing hovered" and snap
-      // the reticle out to its parked position before the next card's
-      // mouseenter cancels it. Long enough to bridge that gap, short enough
-      // to still feel immediate when genuinely leaving the grid.
-      clearTimer.current = setTimeout(() => {
-        hoveredElRef.current = null;
-        setHoverRect(null);
-      }, 120);
-    }
-  }
-
-  // Keeps the reticle aligned with the hovered card across scroll/resize
-  // instead of tracking a stale rect snapshot.
-  useEffect(() => {
-    let raf = 0;
-    function update() {
-      raf = 0;
-      if (hoveredElRef.current) setHoverRect(rectOf(hoveredElRef.current));
-    }
-    function onScrollOrResize() {
-      if (!raf) raf = requestAnimationFrame(update);
-    }
-    window.addEventListener("scroll", onScrollOrResize, { passive: true });
-    window.addEventListener("resize", onScrollOrResize);
-    return () => {
-      window.removeEventListener("scroll", onScrollOrResize);
-      window.removeEventListener("resize", onScrollOrResize);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
+  const { hoverRect, handleHoverChange } = useHoverReticle();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="relative mb-6 overflow-hidden">
-        <p
-          aria-hidden
-          className="pointer-events-none absolute -top-10 -left-2 bg-linear-to-r from-foreground/25 to-foreground/5 bg-clip-text font-heading text-[7rem] leading-none font-black tracking-tighter text-transparent select-none sm:text-[9rem]"
-        >
-          CLOSET
-        </p>
-        <div className="relative flex items-center justify-between pt-2">
-          <h1 className="font-heading text-3xl font-black tracking-tight uppercase">
-            Your closet
-          </h1>
-          <div className="flex items-center gap-2">
+      <PageHeader
+        title="Your closet"
+        watermark="Closet"
+        actions={
+          <>
             {/* A forced hard navigation, not Link: the (.)items/[id]
                 interceptor treats any soft navigation to /items/* as an
                 overlay on this page, and there's no item with id "archive"
@@ -157,9 +107,9 @@ function ItemsPageContent() {
             </Tooltip>
             <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
             <Button render={<Link href="/items/new" />}>+ Add item</Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
         <Input

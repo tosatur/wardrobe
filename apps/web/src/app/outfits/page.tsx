@@ -9,9 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OutfitCard } from "@/components/outfit-card";
 import { OutfitListRow } from "@/components/outfit-list-row";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
+import { HoverReticle } from "@/components/hover-reticle";
+import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { listOutfits } from "@/lib/outfits-client";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
+import { useHoverReticle } from "@/hooks/use-hover-reticle";
 
 function isOutfitViewMode(value: string | null): value is "grid" | "list" {
   return value === "grid" || value === "list";
@@ -45,26 +48,21 @@ function OutfitsPageContent() {
     queryFn: () => listOutfits({ q }),
   });
 
+  const { hoverRect, handleHoverChange } = useHoverReticle();
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="relative mb-6 overflow-hidden">
-        <p
-          aria-hidden
-          className="pointer-events-none absolute -top-10 -left-2 bg-linear-to-r from-foreground/25 to-foreground/5 bg-clip-text font-heading text-[7rem] leading-none font-black tracking-tighter text-transparent select-none sm:text-[9rem]"
-        >
-          OUTFITS
-        </p>
-        <div className="relative flex items-center justify-between pt-2">
-          <h1 className="font-heading text-3xl font-black tracking-tight uppercase">
-            Your outfits
-          </h1>
-          {/* A forced hard navigation, not next/link's Link: the
-              (.)outfits/[id] interceptor treats any soft (client-side)
-              navigation under /outfits/* as an overlay on the current page
-              and never mounts the real target route, which would otherwise
-              leave this page showing behind a blank modal slot instead of
-              opening the outfit editor. */}
-          <div className="flex items-center gap-2">
+      <PageHeader
+        title="Your outfits"
+        watermark="Outfits"
+        actions={
+          /* A forced hard navigation, not next/link's Link: the
+             (.)outfits/[id] interceptor treats any soft (client-side)
+             navigation under /outfits/* as an overlay on the current page
+             and never mounts the real target route, which would otherwise
+             leave this page showing behind a blank modal slot instead of
+             opening the outfit editor. */
+          <>
             <ViewToggle
               value={view}
               onChange={(next) => updateParam("view", next)}
@@ -77,9 +75,9 @@ function OutfitsPageContent() {
             >
               + Add outfit
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="glass mb-6 p-3">
         <Input
@@ -119,10 +117,12 @@ function OutfitsPageContent() {
       {!isPending && outfits && outfits.length > 0 && view === "grid" && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {outfits.map((outfit) => (
-            <OutfitCard key={outfit.id} outfit={outfit} />
+            <OutfitCard key={outfit.id} outfit={outfit} onHoverChange={handleHoverChange} />
           ))}
         </div>
       )}
+
+      <HoverReticle rect={hoverRect} />
     </main>
   );
 }

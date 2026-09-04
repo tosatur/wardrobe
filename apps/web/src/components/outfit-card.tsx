@@ -1,24 +1,46 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import type { OutfitDto } from "@wardrobe/shared";
 import { OutfitCanvas } from "@/components/outfit-canvas";
 import { OutfitCardMenu } from "@/components/outfit-card-menu";
+import { PhotoCaptionOverlay } from "@/components/photo-caption-overlay";
 
-export function OutfitCard({ outfit }: { outfit: OutfitDto }) {
+export function OutfitCard({
+  outfit,
+  onHoverChange,
+}: {
+  outfit: OutfitDto;
+  onHoverChange?: (el: HTMLElement | null) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
   return (
     // A plain div, not a Link, so the kebab menu below isn't a button nested
     // inside an anchor (same reasoning as ItemCard).
-    <div className="group relative">
-      <Link href={`/outfits/${outfit.id}`} className="block">
+    <div
+      ref={ref}
+      className="group relative"
+      onMouseEnter={() => onHoverChange?.(ref.current)}
+      onMouseLeave={() => onHoverChange?.(null)}
+    >
+      <Link
+        href={`/outfits/${outfit.id}`}
+        className="block"
+        onFocus={(e) => {
+          // See the identical comment on ItemCard's Link - only react to a
+          // genuine keyboard tab-in, not a focus handed back by a closing
+          // kebab dropdown or route modal.
+          if (e.currentTarget.matches(":focus-visible")) onHoverChange?.(ref.current);
+        }}
+        onBlur={() => onHoverChange?.(null)}
+      >
         <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
 
-        {/* Same hover-reveal caption treatment as ItemCard. */}
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/75 via-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100" />
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100">
+        <PhotoCaptionOverlay>
           <p className="font-heading text-sm font-black tracking-tight text-white">{outfit.name}</p>
-        </div>
+        </PhotoCaptionOverlay>
       </Link>
 
       <OutfitCardMenu
