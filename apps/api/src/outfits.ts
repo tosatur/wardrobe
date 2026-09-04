@@ -72,6 +72,12 @@ async function validateItemPlacements(
   }
 }
 
+function dayRange(date: Date): { start: Date; end: Date } {
+  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
 async function upsertTags(tx: Prisma.TransactionClient, names: string[]) {
   const normalized = [...new Set(names.map((n) => n.toLowerCase()))];
   return Promise.all(
@@ -233,9 +239,18 @@ export async function outfitRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: parsed.error.issues[0]?.message ?? "Invalid input." });
     }
 
+    const wornDate = parsed.data.date ?? new Date();
+    const { start, end } = dayRange(wornDate);
+    const alreadyLogged = await prisma.outfitWear.findFirst({
+      where: { outfitId: existing.id, wornDate: { gte: start, lt: end } },
+    });
+    if (alreadyLogged) {
+      return reply.status(409).send({ error: "This outfit is already logged for that day." });
+    }
+
     const outfit = await prisma.outfit.update({
       where: { id: existing.id },
-      data: { wears: { create: [{ wornDate: parsed.data.date ?? new Date() }] } },
+      data: { wears: { create: [{ wornDate }] } },
       include: OUTFIT_INCLUDE,
     });
 

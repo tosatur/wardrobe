@@ -22,6 +22,7 @@ const { prismaMock } = vi.hoisted(() => {
       deleteMany: vi.fn(),
       create: vi.fn(),
       findMany: vi.fn(),
+      findFirst: vi.fn(),
     },
     tag: {
       upsert: vi.fn(),
@@ -217,6 +218,7 @@ describe("POST /outfits/:id/wears", () => {
     const { prisma } = await import("@wardrobe/db");
 
     vi.mocked(prisma.outfit.findUnique).mockResolvedValue(makeOutfit() as never);
+    vi.mocked(prisma.outfitWear.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.outfit.update).mockResolvedValue(makeOutfit() as never);
 
     const app = Fastify();
@@ -243,6 +245,7 @@ describe("POST /outfits/:id/wears", () => {
     const { prisma } = await import("@wardrobe/db");
 
     vi.mocked(prisma.outfit.findUnique).mockResolvedValue(makeOutfit() as never);
+    vi.mocked(prisma.outfitWear.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.outfit.update).mockResolvedValue(makeOutfit() as never);
 
     const app = Fastify();
@@ -256,6 +259,32 @@ describe("POST /outfits/:id/wears", () => {
         data: { wears: { create: [{ wornDate: expect.any(Date) }] } },
       }),
     );
+    await app.close();
+  });
+
+  it("returns 409 when the outfit is already logged for that day", async () => {
+    const { outfitRoutes } = await import("./outfits.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.outfit.findUnique).mockResolvedValue(makeOutfit() as never);
+    vi.mocked(prisma.outfitWear.findFirst).mockResolvedValue({
+      id: "wear-1",
+      outfitId: "outfit-1",
+      wornDate: new Date("2026-03-01T08:00:00Z"),
+      createdAt: new Date("2026-03-01T08:00:00Z"),
+    } as never);
+
+    const app = Fastify();
+    await app.register(outfitRoutes);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/outfits/outfit-1/wears",
+      payload: { date: "2026-03-01T20:00:00Z" },
+    });
+
+    expect(response.statusCode).toBe(409);
+    expect(prisma.outfit.update).not.toHaveBeenCalled();
     await app.close();
   });
 
