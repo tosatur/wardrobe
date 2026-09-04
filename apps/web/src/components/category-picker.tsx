@@ -74,14 +74,23 @@ export function CategoryPicker({
   // be among the currently-visible (search-filtered) rows, so its own
   // record is looked up directly rather than found within `visible`.
   const selectedCategory = value ? (all.find((c) => c.id === value) ?? null) : null;
-  const selectedNode: CategoryNode | null = value
-    ? {
-        id: value,
-        name: selectedCategory?.name ?? value,
-        path: selectedCategory?.path ?? value,
-        depth: 0,
-      }
-    : null;
+  // Memoized so its reference only changes with the selection itself, not
+  // on every render - Base UI's single-select Combobox re-syncs its
+  // displayed input text off a *reference* change of `value`, so a fresh
+  // object here on every keystroke (each one re-renders this component via
+  // `query` state) would reset the input back to the old label each time.
+  const selectedNode = React.useMemo<CategoryNode | null>(
+    () =>
+      value
+        ? {
+            id: value,
+            name: selectedCategory?.name ?? value,
+            path: selectedCategory?.path ?? value,
+            depth: 0,
+          }
+        : null,
+    [value, selectedCategory],
+  );
 
   return (
     <ComboboxRoot<CategoryNode>

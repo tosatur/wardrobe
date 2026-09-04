@@ -4,10 +4,10 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { getSession, type Session } from "@/lib/auth-client";
 import { updateProfile, changeEmail, changePassword } from "@/lib/users-client";
-import { geocodeSearch } from "@/lib/weather-client";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CurrencySelect } from "@/components/currency-select";
+import { LocationPicker } from "@/components/location-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,8 +22,6 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [locationResults, setLocationResults] = useState<GeocodeResultDto[]>([]);
 
   useEffect(() => {
     void getSession().then((s) => {
@@ -31,17 +29,9 @@ export default function ProfilePage() {
       if (s) {
         setName(s.user.name);
         setEmail(s.user.email);
-        setLocationQuery(s.user.locationName ?? "");
       }
     });
   }, []);
-
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      void geocodeSearch(locationQuery).then(setLocationResults);
-    }, 300);
-    return () => clearTimeout(handle);
-  }, [locationQuery]);
 
   async function handleAccountSubmit(event: FormEvent) {
     event.preventDefault();
@@ -88,8 +78,6 @@ export default function ProfilePage() {
       return;
     }
     toast.success("Location updated.");
-    setLocationQuery(result.name);
-    setLocationResults([]);
     void getSession().then(setSession);
   }
 
@@ -103,7 +91,6 @@ export default function ProfilePage() {
       toast.error(error);
       return;
     }
-    setLocationQuery("");
     void getSession().then(setSession);
   }
 
@@ -228,28 +215,10 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">Used to show weather on the calendar.</p>
-              <Input
-                placeholder="Search for a city…"
-                value={locationQuery}
-                onChange={(e) => setLocationQuery(e.target.value)}
+              <LocationPicker
+                value={session.user.locationName}
+                onChange={(result) => void handleSelectLocation(result)}
               />
-              {locationResults.length > 0 && (
-                <ul className="divide-y divide-border rounded-sm border border-border">
-                  {locationResults.map((result, i) => (
-                    <li key={`${result.name}-${i}`}>
-                      <button
-                        type="button"
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                        onClick={() => void handleSelectLocation(result)}
-                      >
-                        {result.name}
-                        {result.admin1 ? `, ${result.admin1}` : ""}
-                        {result.country ? `, ${result.country}` : ""}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
               {session.user.locationName && (
                 <Button
                   type="button"
