@@ -4,6 +4,7 @@ import { Archivo, Space_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Nav } from "@/components/nav";
 import { PageTransition } from "@/components/page-transition";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes-guard";
@@ -63,11 +64,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <Nav />
-            <PageTransition>{children}</PageTransition>
-            {modal}
-            <Toaster />
-            <UnsavedChangesGuard />
+            <TooltipProvider>
+              <Nav />
+              <PageTransition>{children}</PageTransition>
+              {modal}
+              <Toaster />
+              <UnsavedChangesGuard />
+            </TooltipProvider>
           </Providers>
         </ThemeProvider>
       </body>
