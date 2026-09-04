@@ -147,11 +147,24 @@ function CalendarPageContent() {
               <div
                 key={key}
                 className={cn(
-                  "flex min-h-36 flex-col gap-1 bg-background p-1.5 transition-colors hover:bg-muted/60",
+                  "relative flex min-h-36 flex-col gap-1 bg-background p-1.5 transition-colors hover:bg-muted/60",
                   !inMonth && "bg-muted/40",
                 )}
               >
-                <div className="flex items-center justify-between">
+                {/* Stretched link: fills the cell so the whole day is
+                    clickable, while the outfit thumbnails below (given their
+                    own `relative` stacking below) still capture their own
+                    clicks and navigate to the outfit instead. */}
+                <Link
+                  href={`/calendar/${key}`}
+                  className="absolute inset-0"
+                  aria-label={`View ${day.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })}`}
+                />
+                <div className="relative flex items-center justify-between">
                   <span
                     className={cn(
                       "font-mono text-xs",
@@ -162,7 +175,7 @@ function CalendarPageContent() {
                   </span>
                   <DayWeather weather={weatherByDay.get(key)} />
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="relative flex flex-wrap gap-1">
                   {dayWears.slice(0, 2).map((wear) => (
                     <Link
                       key={wear.id}
