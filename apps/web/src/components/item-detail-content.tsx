@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
+import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { API_URL } from "@/lib/auth-client";
 import { getItem } from "@/lib/items-client";
 import { EmptyState } from "@/components/empty-state";
@@ -16,6 +17,7 @@ import { EmptyState } from "@/components/empty-state";
 export function ItemDetailContent({ id }: { id: string }) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
 
   const { data: item, isPending } = useQuery({
     queryKey: ["item", id],
@@ -64,7 +66,7 @@ export function ItemDetailContent({ id }: { id: string }) {
         {item.photoCutoutUrl || item.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image
           <img
-            src={`${API_URL}${item.photoCutoutUrl ?? item.photoUrl}`}
+            src={`${API_URL}${showOriginal ? (item.photoUrl ?? item.photoCutoutUrl) : (item.photoCutoutUrl ?? item.photoUrl)}`}
             crossOrigin="use-credentials"
             alt="Item photo"
             className="size-full object-contain"
@@ -73,6 +75,13 @@ export function ItemDetailContent({ id }: { id: string }) {
           <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
             No photo
           </div>
+        )}
+        {item.photoCutoutUrl && item.photoUrl && (
+          <PhotoViewToggle
+            showOriginal={showOriginal}
+            onChange={setShowOriginal}
+            className="absolute top-3 right-3"
+          />
         )}
       </div>
 

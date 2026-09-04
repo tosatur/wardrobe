@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { API_URL } from "@/lib/auth-client";
 import { uploadItemPhoto } from "@/lib/items-client";
 import { useUploadStore } from "@/lib/upload-store";
@@ -10,14 +11,17 @@ import { useUploadStore } from "@/lib/upload-store";
 export function PhotoUpload({
   itemId,
   currentPhotoUrl,
+  currentPhotoCutoutUrl,
   onUploaded,
 }: {
   itemId: string;
   currentPhotoUrl: string | null;
+  currentPhotoCutoutUrl: string | null;
   onUploaded: (photoUrl: string | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
   const uploading = useUploadStore((s) => s.uploading);
   const setUploading = useUploadStore((s) => s.setUploading);
 
@@ -38,7 +42,10 @@ export function PhotoUpload({
     onUploaded(data?.photoUrl ?? null);
   }
 
-  const displayUrl = preview ?? (currentPhotoUrl ? `${API_URL}${currentPhotoUrl}` : null);
+  const chosenPhotoUrl = showOriginal
+    ? (currentPhotoUrl ?? currentPhotoCutoutUrl)
+    : (currentPhotoCutoutUrl ?? currentPhotoUrl);
+  const displayUrl = preview ?? (chosenPhotoUrl ? `${API_URL}${chosenPhotoUrl}` : null);
 
   return (
     <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted p-3">
@@ -54,6 +61,13 @@ export function PhotoUpload({
         <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
           No photo
         </div>
+      )}
+      {!preview && currentPhotoUrl && currentPhotoCutoutUrl && (
+        <PhotoViewToggle
+          showOriginal={showOriginal}
+          onChange={setShowOriginal}
+          className="absolute top-3 right-3"
+        />
       )}
       <input
         ref={inputRef}
