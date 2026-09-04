@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { SectionEyebrow } from "@/components/section-eyebrow";
 import { StarRating } from "@/components/star-rating";
 import { TagPicker } from "@/components/tag-picker";
@@ -291,25 +291,29 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
 
           <div className="w-full shrink-0 overflow-y-auto border-t border-border bg-card p-4 lg:h-full lg:w-80 lg:border-t-0 lg:border-l">
             <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <SectionEyebrow>Description</SectionEyebrow>
-                <Textarea placeholder="What's this outfit for?" {...register("description")} />
-              </div>
+              <Field>
+                <FieldLabel htmlFor="outfit-description">Description</FieldLabel>
+                <Textarea
+                  id="outfit-description"
+                  placeholder="What's this outfit for?"
+                  {...register("description")}
+                />
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <SectionEyebrow>Rating</SectionEyebrow>
+              <Field>
+                <FieldLabel htmlFor="outfit-rating">Rating</FieldLabel>
                 <StarRating value={rating} onChange={(v) => setValue("rating", v)} />
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <SectionEyebrow>Tags</SectionEyebrow>
+              <Field>
+                <FieldLabel htmlFor="outfit-tags">Tags</FieldLabel>
                 <TagPicker values={tags} onChange={(v) => setValue("tags", v)} />
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <SectionEyebrow>Worn on</SectionEyebrow>
+              <Field>
+                <FieldLabel htmlFor="outfit-worn-dates">Worn on</FieldLabel>
                 <WornDatesEditor value={wornDates} onChange={(v) => setValue("wornDates", v)} />
-              </div>
+              </Field>
 
               {placements.length > 0 && (
                 <div className="flex flex-col gap-2">
