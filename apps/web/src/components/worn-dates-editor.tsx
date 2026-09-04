@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/date-picker";
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString(undefined, {
@@ -35,12 +35,9 @@ export function WornDatesEditor({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
-        <Input
-          type="date"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          className="flex-1"
-        />
+        <div className="flex-1">
+          <DatePicker value={draft} onChange={setDraft} placeholder="Add a date" />
+        </div>
         <Button type="button" variant="outline" size="sm" onClick={addDate}>
           Add
         </Button>

@@ -21,6 +21,7 @@ import { TagPicker } from "@/components/tag-picker";
 import { PhotoUpload } from "@/components/photo-upload";
 import { PhotoPicker } from "@/components/photo-picker";
 import { CategoryPicker } from "@/components/category-picker";
+import { DatePicker } from "@/components/date-picker";
 import { BrandPicker } from "@/components/brand-picker";
 import { ColorPicker } from "@/components/color-picker";
 import { MaterialPicker } from "@/components/material-picker";
@@ -91,6 +92,7 @@ export function ItemForm({ item }: { item?: ItemDto }) {
   const materialIds = useWatch({ control, name: "materialIds" });
   const tags = useWatch({ control, name: "tags" });
   const visibility = useWatch({ control, name: "visibility" });
+  const purchaseDate = useWatch({ control, name: "purchaseDate" });
 
   // Staged locally during creation, there's no item id to upload against
   // until the item itself exists, so the file is held here and uploaded
@@ -267,7 +269,11 @@ export function ItemForm({ item }: { item?: ItemDto }) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="purchaseDate">Purchase date</FieldLabel>
-                <Input id="purchaseDate" type="date" {...register("purchaseDate")} />
+                <DatePicker
+                  id="purchaseDate"
+                  value={purchaseDate}
+                  onChange={(next) => setValue("purchaseDate", next)}
+                />
               </Field>
               <Field>
                 <FieldLabel htmlFor="price">Price</FieldLabel>
