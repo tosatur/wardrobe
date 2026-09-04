@@ -81,6 +81,7 @@ export function ItemForm({ item }: { item?: ItemDto }) {
     control,
     setValue,
     setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<ItemFormValues>({ defaultValues: toFormValues(item) });
 
@@ -104,6 +105,12 @@ export function ItemForm({ item }: { item?: ItemDto }) {
   }
 
   async function onSubmit(values: ItemFormValues) {
+    // categoryId, colorIds, tags etc. are set via setValue rather than
+    // register, so react-hook-form never revalidates them on its own -
+    // a setError from a previous failed submit would otherwise stick
+    // around and block handleSubmit forever even after the field is fixed.
+    clearErrors();
+
     const payload = toPayload(values);
     const schema = mode === "create" ? ItemCreateSchema : ItemUpdateSchema;
     const parsed = schema.safeParse(payload);
