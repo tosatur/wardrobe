@@ -108,19 +108,21 @@ export function ItemPalette() {
 
   return (
     <div ref={setDropRef} className="relative flex h-full flex-col gap-3">
-      {showDropZone && (
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/90 backdrop-blur-sm",
-            isOver && "bg-destructive/20",
-          )}
-        >
-          <Trash2 className={cn("size-8", isOver ? "text-destructive" : "text-muted-foreground")} />
-          <p className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase">
-            Drop to remove
-          </p>
-        </div>
-      )}
+      {/* Kept mounted (rather than conditionally rendered) so the
+          opacity change is a transition, not an instant mount/unmount. */}
+      <div
+        aria-hidden={!showDropZone}
+        className={cn(
+          "pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/90 backdrop-blur-sm opacity-0 transition-opacity duration-200",
+          showDropZone && "opacity-100",
+          isOver && "bg-destructive/20",
+        )}
+      >
+        <Trash2 className={cn("size-8", isOver ? "text-destructive" : "text-muted-foreground")} />
+        <p className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase">
+          Drop to remove
+        </p>
+      </div>
 
       <p className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase">
         Your items
