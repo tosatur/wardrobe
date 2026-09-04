@@ -2,7 +2,8 @@
 
 import { Grid2x2, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type ViewMode = "masonry" | "grid" | "list";
 
@@ -26,20 +27,26 @@ export function ViewToggle({
   className?: string;
 }) {
   return (
-    <div className={cn("flex gap-1", className)}>
+    <ButtonGroup className={className}>
       {MODES.filter((m) => modes.includes(m.value)).map(({ value: mode, label, icon: Icon }) => (
-        <Button
-          key={mode}
-          type="button"
-          variant={value === mode ? "default" : "outline"}
-          size="icon-sm"
-          aria-label={label}
-          aria-pressed={value === mode}
-          onClick={() => onChange(mode)}
-        >
-          <Icon />
-        </Button>
+        <Tooltip key={mode}>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant={value === mode ? "default" : "outline"}
+                size="icon-sm"
+                aria-label={label}
+                aria-pressed={value === mode}
+                onClick={() => onChange(mode)}
+              />
+            }
+          >
+            <Icon />
+          </TooltipTrigger>
+          <TooltipContent>{label}</TooltipContent>
+        </Tooltip>
       ))}
-    </div>
+    </ButtonGroup>
   );
 }
