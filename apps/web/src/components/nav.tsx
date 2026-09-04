@@ -21,14 +21,16 @@ export function Nav() {
 
   function linkClassName(href: string) {
     return cn(
-      // text-foreground/70 rather than text-muted-foreground: the header's
+      // text-foreground/85 rather than text-muted-foreground: the header's
       // translucent glass background (deliberately not opaque, see its own
       // comment above) lets the page's own light-mode color bleed through
       // the blur, which washes out muted-foreground's flatter gray past
       // legibility. A fraction of the strong (near-white, dark-scoped)
-      // foreground token holds contrast in both themes instead.
+      // foreground token holds contrast in both themes instead. /85, not
+      // /70 - against a light-theme page the glass wash reads lighter, and
+      // /70 dropped inactive links below a readable contrast ratio there.
       "transition-colors hover:text-foreground",
-      isActive(href) ? "text-foreground" : "text-foreground/70",
+      isActive(href) ? "text-foreground" : "text-foreground/85",
     );
   }
 
