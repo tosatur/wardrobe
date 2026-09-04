@@ -1,6 +1,8 @@
 # Planning notes, not part of the repo
 PLANNING.md
 TODO.md
+DESIGN_SYSTEM.md
+DESIGN_SYSTEM_AUDIT.md
 
 # Dependencies
 node_modules/
