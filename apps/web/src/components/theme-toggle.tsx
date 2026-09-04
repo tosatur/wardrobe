@@ -1,34 +1,34 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { Moon, MonitorIcon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ButtonGroup } from "@/components/ui/button-group";
+
+const OPTIONS = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: MonitorIcon },
+] as const;
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon">
-            <Sun className="size-4 scale-100 dark:scale-0" />
-            <Moon className="absolute size-4 scale-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <ButtonGroup>
+      {OPTIONS.map(({ value, label, icon: Icon }) => (
+        <Button
+          key={value}
+          type="button"
+          variant={theme === value ? "default" : "outline"}
+          size="sm"
+          aria-pressed={theme === value}
+          onClick={() => setTheme(value)}
+        >
+          <Icon />
+          {label}
+        </Button>
+      ))}
+    </ButtonGroup>
   );
 }
