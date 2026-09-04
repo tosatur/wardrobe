@@ -34,10 +34,11 @@ function categoryPath(category: { name: string; parent: { name: string } | null 
 
 // Category trees can nest arbitrarily deep, so filtering "this category"
 // has to mean "this category or any of its descendants", not just its
-// direct children.
+// direct children. Takes multiple seed ids (unioning their descendants) so a
+// multi-category filter costs one tree fetch, not one per selected category.
 async function categoryAndDescendantIds(
   tx: Prisma.TransactionClient | typeof prisma,
-  categoryId: string,
+  categoryIds: string[],
 ): Promise<string[]> {
   const all = await tx.category.findMany({ select: { id: true, parentId: true } });
   const childrenOf = new Map<string, string[]>();
@@ -45,11 +46,11 @@ async function categoryAndDescendantIds(
     if (!c.parentId) continue;
     childrenOf.set(c.parentId, [...(childrenOf.get(c.parentId) ?? []), c.id]);
   }
-  const ids = [categoryId];
+  const ids = [...categoryIds];
   for (let i = 0; i < ids.length; i++) {
     ids.push(...(childrenOf.get(ids[i]) ?? []));
   }
-  return ids;
+  return [...new Set(ids)];
 }
 
 export function computeItemStats(wornDates: Date[], price: number | null): ItemStatsDto {
@@ -195,7 +196,19 @@ export async function itemRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.status(400).send({ error: "Invalid query parameters." });
     }
-    const { categoryId, colorId, brandId, materialId, tag, q, photoStatus, status } = parsed.data;
+    const {
+      categoryId,
+      categoryIds,
+      colorId,
+      brandId,
+      brandIds,
+      materialId,
+      tag,
+      tags,
+      q,
+      photoStatus,
+      status,
+    } = parsed.data;
 
     // Archived items stay out of the closet, search, and outfit-builder
     // palette unless a caller explicitly asks for them (the archive page).
@@ -203,14 +216,24 @@ export async function itemRoutes(app: FastifyInstance) {
       { ownerId: session.user.id },
       { status: status ?? "active" },
     ];
-    if (categoryId) {
-      const ids = await categoryAndDescendantIds(prisma, categoryId);
+    // The *Ids (plural) filters win over their singular counterparts when
+    // both are somehow present - they're the same filter, just multi-select.
+    if (categoryIds && categoryIds.length > 0) {
+      const ids = await categoryAndDescendantIds(prisma, categoryIds);
+      conditions.push({ categoryId: { in: ids } });
+    } else if (categoryId) {
+      const ids = await categoryAndDescendantIds(prisma, [categoryId]);
       conditions.push({ categoryId: { in: ids } });
     }
     if (colorId) conditions.push({ colors: { some: { colorId } } });
-    if (brandId) conditions.push({ brandId });
+    if (brandIds && brandIds.length > 0) conditions.push({ brandId: { in: brandIds } });
+    else if (brandId) conditions.push({ brandId });
     if (materialId) conditions.push({ materials: { some: { materialId } } });
-    if (tag) conditions.push({ tags: { some: { tag: { name: tag.toLowerCase() } } } });
+    if (tags && tags.length > 0) {
+      conditions.push({ tags: { some: { tag: { name: { in: tags.map((t) => t.toLowerCase()) } } } } });
+    } else if (tag) {
+      conditions.push({ tags: { some: { tag: { name: tag.toLowerCase() } } } });
+    }
     if (photoStatus) conditions.push({ photoStatus });
     if (q) {
       conditions.push({

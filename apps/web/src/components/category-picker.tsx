@@ -14,7 +14,7 @@ import {
 import { comboboxFilter } from "@/components/combobox-filter";
 import { listCategories } from "@/lib/items-client";
 
-type CategoryNode = {
+export type CategoryNode = {
   id: string;
   name: string;
   path: string;
@@ -27,7 +27,7 @@ type CategoryNode = {
 // While searching, a category stays visible if it matches or any
 // descendant does, so a matching child's ancestors show up for context
 // even though their own names don't match the query.
-function buildVisibleTree(categories: CategoryDto[], query: string): CategoryNode[] {
+export function buildVisibleTree(categories: CategoryDto[], query: string): CategoryNode[] {
   const trimmed = query.trim();
   if (!trimmed) return [];
 

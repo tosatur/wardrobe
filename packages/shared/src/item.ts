@@ -43,12 +43,24 @@ export type ItemCreateInput = z.infer<typeof ItemCreateSchema>;
 export const ItemUpdateSchema = z.object(itemFields).partial();
 export type ItemUpdateInput = z.infer<typeof ItemUpdateSchema>;
 
+const commaSeparatedIds = z
+  .string()
+  .transform((s) => s.split(",").filter(Boolean))
+  .optional();
+
 export const ItemQuerySchema = z.object({
   categoryId: z.string().min(1).optional(),
+  // Comma-separated ids, not repeated query keys: Fastify's default
+  // querystring parser only returns an array for a key given more than
+  // once, a single value comes back as a bare string - a comma-joined
+  // single param sidesteps that inconsistency.
+  categoryIds: commaSeparatedIds,
   colorId: z.string().min(1).optional(),
   brandId: z.string().min(1).optional(),
+  brandIds: commaSeparatedIds,
   materialId: z.string().min(1).optional(),
   tag: z.string().trim().min(1).optional(),
+  tags: commaSeparatedIds,
   q: z.string().trim().max(200).optional(),
   photoStatus: PhotoStatusSchema.optional(),
   status: ItemStatusSchema.optional(),

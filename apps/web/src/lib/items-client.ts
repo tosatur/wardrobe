@@ -35,7 +35,11 @@ export type ItemPayload = {
 function buildQuery(query: Partial<ItemQueryInput>): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value) params.set(key, value);
+    if (Array.isArray(value)) {
+      if (value.length > 0) params.set(key, value.join(","));
+    } else if (value) {
+      params.set(key, value);
+    }
   }
   const qs = params.toString();
   return qs ? `?${qs}` : "";

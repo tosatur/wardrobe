@@ -9,15 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Combobox } from "@/components/combobox";
-import { CategoryPicker } from "@/components/category-picker";
+import { MultiCombobox } from "@/components/combobox";
+import { CategoryMultiPicker } from "@/components/category-multi-picker";
 import { ItemCard } from "@/components/item-card";
 import { ItemListRow } from "@/components/item-list-row";
 import { ItemSortSelect } from "@/components/item-sort-select";
@@ -55,9 +48,9 @@ function ItemsPageContent() {
   const searchParams = useFrozenSearchParams("/items");
 
   const q = searchParams.get("q") ?? "";
-  const categoryId = searchParams.get("categoryId") ?? "";
-  const brandId = searchParams.get("brandId") ?? "";
-  const tag = searchParams.get("tag") ?? "";
+  const categoryIds = searchParams.get("categoryIds")?.split(",").filter(Boolean) ?? [];
+  const brandIds = searchParams.get("brandIds")?.split(",").filter(Boolean) ?? [];
+  const selectedTags = searchParams.get("tags")?.split(",").filter(Boolean) ?? [];
   const rawView = searchParams.get("view");
   const view: ViewMode = isViewMode(rawView) ? rawView : "masonry";
   const rawSort = searchParams.get("sort");
@@ -70,15 +63,20 @@ function ItemsPageContent() {
     router.replace(`/items?${next.toString()}`);
   }
 
+  function updateListParam(key: string, values: string[]) {
+    updateParam(key, values.join(","));
+  }
+
   const { data: items, isPending } = useQuery({
-    queryKey: ["items", { q, categoryId, brandId, tag }],
-    queryFn: () => listItems({ q, categoryId, brandId, tag }),
+    queryKey: ["items", { q, categoryIds, brandIds, tags: selectedTags }],
+    queryFn: () => listItems({ q, categoryIds, brandIds, tags: selectedTags }),
   });
   const sortedItems = sortItems(items ?? [], sort);
 
   const { data: tags } = useQuery({ queryKey: ["tags"], queryFn: listTags });
   const { data: brands } = useQuery({ queryKey: ["brands"], queryFn: listBrands });
   const brandOptions = (brands ?? []).map((b) => ({ value: b.id, label: b.name }));
+  const tagOptions = (tags ?? []).map((t) => ({ value: t, label: t }));
 
   const hoveredElRef = useRef<HTMLElement | null>(null);
   const clearTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -169,32 +167,26 @@ function ItemsPageContent() {
           defaultValue={q}
           onChange={(e) => updateParam("q", e.target.value)}
         />
-        <CategoryPicker
-          value={categoryId || null}
-          onChange={(id) => updateParam("categoryId", id)}
+        <CategoryMultiPicker
+          values={categoryIds}
+          onChange={(ids) => updateListParam("categoryIds", ids)}
         />
-        <Combobox
+        <MultiCombobox
           options={brandOptions}
-          value={brandId || null}
-          onChange={(id) => updateParam("brandId", id)}
+          values={brandIds}
+          onChange={(ids) => updateListParam("brandIds", ids)}
           placeholder="Search brands…"
+          emptyText="No matching brand."
+          showAllBeforeSearch={false}
         />
-        <Select
-          value={tag || "all"}
-          onValueChange={(v) => updateParam("tag", !v || v === "all" ? "" : v)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Tag" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All tags</SelectItem>
-            {tags?.map((t) => (
-              <SelectItem key={t} value={t}>
-                {t}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MultiCombobox
+          options={tagOptions}
+          values={selectedTags}
+          onChange={(next) => updateListParam("tags", next)}
+          placeholder="Search tags…"
+          emptyText="No matching tag."
+          showAllBeforeSearch={false}
+        />
         <ItemSortSelect
           value={sort}
           onChange={(next) => updateParam("sort", next)}
