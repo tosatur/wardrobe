@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArchiveIcon, ArchiveRestoreIcon, Loader2Icon, PencilIcon, Trash2Icon } from "lucide-react";
+import { ArchiveIcon, ArchiveRestoreIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
+import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
 import { ItemHistoryTimeline } from "@/components/item-history-timeline";
 import { API_URL } from "@/lib/auth-client";
 import { getItem, updateItem } from "@/lib/items-client";
@@ -105,20 +106,7 @@ export function ItemDetailContent({ id }: { id: string }) {
             />
           )}
           {item.photoStatus === "processing" && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <div
-                    role="status"
-                    aria-label="Removing background"
-                    className="absolute top-3 right-3 flex items-center justify-center rounded-sm border border-white/20 bg-black/40 p-1.5 text-white backdrop-blur-md"
-                  />
-                }
-              >
-                <Loader2Icon className="size-4 animate-spin" />
-              </TooltipTrigger>
-              <TooltipContent>Removing background…</TooltipContent>
-            </Tooltip>
+            <PhotoProcessingBadge className="absolute top-3 right-3" />
           )}
         </div>
 

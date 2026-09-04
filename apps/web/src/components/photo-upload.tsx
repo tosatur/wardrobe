@@ -3,9 +3,12 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { ImageUpIcon } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import type { PhotoStatus } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
+import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
 import { API_URL } from "@/lib/auth-client";
 import { uploadItemPhoto } from "@/lib/items-client";
 import { useUploadStore } from "@/lib/upload-store";
@@ -14,11 +17,13 @@ export function PhotoUpload({
   itemId,
   currentPhotoUrl,
   currentPhotoCutoutUrl,
+  photoStatus,
   onUploaded,
 }: {
   itemId: string;
   currentPhotoUrl: string | null;
   currentPhotoCutoutUrl: string | null;
+  photoStatus: PhotoStatus;
   onUploaded: (photoUrl: string | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,12 +31,14 @@ export function PhotoUpload({
   const [showOriginal, setShowOriginal] = useState(false);
   const uploading = useUploadStore((s) => s.uploading);
   const setUploading = useUploadStore((s) => s.setUploading);
+  const queryClient = useQueryClient();
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setPreview(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
     setUploading(true);
     const { data, error } = await uploadItemPhoto(itemId, file);
     setUploading(false);
@@ -41,6 +48,18 @@ export function PhotoUpload({
       return;
     }
     toast.success("Photo uploaded.");
+    // Seeds the item query with the fresh (still "processing") record right
+    // away, rather than waiting on a refetch - item-edit-content's own
+    // refetchInterval takes over from here and polls until the worker
+    // swaps in the finished cutout. The local preview is dropped once the
+    // server has its own copy to show, so that swap-in is actually visible
+    // instead of being masked behind the blob URL forever.
+    if (data) {
+      queryClient.setQueryData(["item", itemId], data);
+      void queryClient.invalidateQueries({ queryKey: ["items"] });
+    }
+    URL.revokeObjectURL(objectUrl);
+    setPreview(null);
     onUploaded(data?.photoUrl ?? null);
   }
 
@@ -71,6 +90,7 @@ export function PhotoUpload({
           className="absolute right-3 bottom-3"
         />
       )}
+      {photoStatus === "processing" && <PhotoProcessingBadge className="absolute top-3 right-3" />}
       <input
         ref={inputRef}
         type="file"

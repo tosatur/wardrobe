@@ -183,6 +183,7 @@ export function ItemForm({ item }: { item?: ItemDto }) {
               itemId={item.id}
               currentPhotoUrl={item.photoUrl}
               currentPhotoCutoutUrl={item.photoCutoutUrl}
+              photoStatus={item.photoStatus}
               onUploaded={() => router.refresh()}
             />
           ) : (

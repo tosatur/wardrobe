@@ -10,6 +10,7 @@ export function ItemEditContent({ id }: { id: string }) {
   const { data: item, isPending } = useQuery({
     queryKey: ["item", id],
     queryFn: () => getItem(id),
+    refetchInterval: (query) => (query.state.data?.photoStatus === "processing" ? 2000 : false),
   });
 
   if (isPending) {
