@@ -26,6 +26,7 @@ export function TagPicker({
       onChange={onChange}
       placeholder={placeholder}
       emptyText="No matching tag."
+      showAllBeforeSearch={false}
       allowCreate
       max={max}
     />

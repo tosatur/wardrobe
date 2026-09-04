@@ -25,6 +25,7 @@ export function BrandPicker({
       onChange={onChange}
       placeholder="Search or add a brand…"
       emptyText="No matching brand."
+      showAllBeforeSearch={false}
       allowCreate
     />
   );

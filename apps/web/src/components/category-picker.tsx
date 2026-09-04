@@ -28,6 +28,9 @@ type CategoryNode = {
 // descendant does, so a matching child's ancestors show up for context
 // even though their own names don't match the query.
 function buildVisibleTree(categories: CategoryDto[], query: string): CategoryNode[] {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
   const childrenOf = new Map<string | null, CategoryDto[]>();
   for (const c of categories) {
     const key = c.parentId;
@@ -35,10 +38,7 @@ function buildVisibleTree(categories: CategoryDto[], query: string): CategoryNod
   }
   for (const list of childrenOf.values()) list.sort((a, b) => a.name.localeCompare(b.name));
 
-  const trimmed = query.trim();
-
   function matches(c: CategoryDto): boolean {
-    if (!trimmed) return true;
     if (comboboxFilter(c.name, trimmed)) return true;
     return (childrenOf.get(c.id) ?? []).some(matches);
   }
@@ -97,7 +97,7 @@ export function CategoryPicker({
     >
       <ComboboxInput placeholder="Search categories…" />
       <ComboboxContent>
-        <ComboboxEmpty>No matching category.</ComboboxEmpty>
+        <ComboboxEmpty>{query.trim() ? "No matching category." : "Type to search…"}</ComboboxEmpty>
         <ComboboxList>
           {(item: CategoryNode) => (
             <ComboboxItem key={item.id} value={item} style={{ paddingLeft: `${0.375 + item.depth}rem` }}>
