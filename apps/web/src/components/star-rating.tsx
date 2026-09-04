@@ -24,6 +24,13 @@ export function StarRating({
 }) {
   const displayValue = value ?? 0;
 
+  // Clicking the star half that's already the current rating clears it
+  // back to 0 - otherwise there'd be no way to get back down from the
+  // minimum rating of 0.5 once one is picked.
+  function handleClick(target: number) {
+    onChange?.(displayValue === target ? null : target);
+  }
+
   return (
     <div className="flex items-center gap-0.5">
       {POSITIONS.map((position) => {
@@ -45,13 +52,13 @@ export function StarRating({
                   type="button"
                   aria-label={`Rate ${position - 0.5} out of 5 stars`}
                   className="absolute inset-y-0 left-0 w-1/2 cursor-pointer"
-                  onClick={() => onChange(position - 0.5)}
+                  onClick={() => handleClick(position - 0.5)}
                 />
                 <button
                   type="button"
                   aria-label={`Rate ${position} out of 5 stars`}
                   className="absolute inset-y-0 right-0 w-1/2 cursor-pointer"
-                  onClick={() => onChange(position)}
+                  onClick={() => handleClick(position)}
                 />
               </>
             )}
