@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { ChevronDownIcon } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -15,6 +16,13 @@ import {
 } from "@dnd-kit/core";
 import { OutfitCreateSchema, OutfitUpdateSchema, type OutfitDto } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { FieldError } from "@/components/ui/field";
 import { SectionEyebrow } from "@/components/section-eyebrow";
@@ -25,7 +33,7 @@ import { ItemPalette } from "@/components/item-palette";
 import { OutfitCanvas } from "@/components/outfit-canvas";
 import { OutfitDragOverlay, type ActiveDragGhost } from "@/components/outfit-drag-overlay";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
-import { createOutfit, updateOutfit, type OutfitPayload } from "@/lib/outfits-client";
+import { createOutfit, logWear, updateOutfit, type OutfitPayload } from "@/lib/outfits-client";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 type OutfitFormValues = {
@@ -134,7 +142,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
     if (data?.type === "placed") movePlacement(data.itemId as string, pctX, pctY);
   }
 
-  async function onSubmit(values: OutfitFormValues) {
+  async function onSubmit(values: OutfitFormValues, logToday: boolean) {
     const payload: OutfitPayload = {
       name: values.name,
       description: values.description || undefined,
@@ -166,6 +174,13 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
       return;
     }
 
+    if (logToday) {
+      const wearResult = await logWear(result.data.id);
+      if (wearResult.error) {
+        toast.error(`Outfit saved, but today's wear wasn't logged: ${wearResult.error}`);
+      }
+    }
+
     toast.success(mode === "create" ? "Outfit created." : "Outfit updated.");
     router.push(`/outfits/${result.data.id}`);
     router.refresh();
@@ -179,7 +194,10 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex h-full flex-col">
+      <form
+        onSubmit={(e) => void handleSubmit((values) => onSubmit(values, false))(e)}
+        className="flex h-full flex-col"
+      >
         {/* Toolbar: the outfit's name reads as a page title, not a form
             field, so this workspace feels like a tool you're working in
             rather than a form you're filling out. Its own bar, distinct
@@ -193,9 +211,27 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
             />
             {errors.name && <FieldError>{errors.name.message ?? "Required."}</FieldError>}
           </div>
-          <Button type="submit" disabled={isSubmitting} className="shrink-0">
-            {isSubmitting ? "Saving…" : mode === "create" ? "Create outfit" : "Save changes"}
-          </Button>
+          <ButtonGroup className="shrink-0">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving…" : mode === "create" ? "Create outfit" : "Save changes"}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button type="button" disabled={isSubmitting} aria-label="More save options" />
+                }
+              >
+                <ChevronDownIcon />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => void handleSubmit((values) => onSubmit(values, true))()}
+                >
+                  Save and log today
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ButtonGroup>
         </div>
 
         {/* Three panels: your items, the canvas, the outfit's own details.
