@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { listWears } from "@/lib/outfits-client";
 import { CalendarWearTile } from "@/components/calendar-wear-tile";
 import { DayWeather } from "@/components/day-weather";
+import { PageHeader } from "@/components/page-header";
 import { getWeather } from "@/lib/weather-client";
 import { toDateKey } from "@/lib/date";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
@@ -125,18 +126,11 @@ function CalendarPageContent() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="relative mb-6 overflow-hidden">
-        <p
-          aria-hidden
-          className="pointer-events-none absolute -top-10 -left-2 bg-linear-to-r from-foreground/25 to-foreground/5 bg-clip-text font-heading text-[7rem] leading-none font-black tracking-tighter text-transparent select-none sm:text-[9rem]"
-        >
-          CALENDAR
-        </p>
-        <div className="relative flex items-center justify-between pt-2">
-          <h1 className="font-heading text-3xl font-black tracking-tight uppercase">
-            {monthStart.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-          </h1>
-          <div className="flex gap-2">
+      <PageHeader
+        title={monthStart.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+        watermark="Calendar"
+        actions={
+          <>
             <Button
               variant="outline"
               size="icon-sm"
@@ -153,9 +147,9 @@ function CalendarPageContent() {
             >
               <ChevronRightIcon />
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {isPending ? (
         <Skeleton className="h-96 w-full" />
@@ -166,7 +160,7 @@ function CalendarPageContent() {
         <div
           key={toMonthKey(monthStart)}
           className={cn(
-            "glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300",
+            "glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300 motion-reduce:animate-none",
             direction === "next" ? "slide-in-from-right-8" : "slide-in-from-left-8",
           )}
         >

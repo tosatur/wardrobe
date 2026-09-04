@@ -21,6 +21,7 @@ import { ItemCard } from "@/components/item-card";
 import { ItemListRow } from "@/components/item-list-row";
 import { ItemSortSelect } from "@/components/item-sort-select";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
+import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { listBrands, listItems, listTags } from "@/lib/items-client";
 import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
@@ -73,20 +74,16 @@ function ItemArchivePageContent() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <Link
-            href="/items"
-            className="mb-1 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeftIcon className="size-3.5" /> Back to closet
-          </Link>
-          <h1 className="font-heading text-3xl font-black tracking-tight uppercase">
-            Archived items
-          </h1>
-        </div>
-        <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
-      </div>
+      <Link
+        href="/items"
+        className="mb-1 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeftIcon className="size-3.5" /> Back to closet
+      </Link>
+      <PageHeader
+        title="Archived items"
+        actions={<ViewToggle value={view} onChange={(next) => updateParam("view", next)} />}
+      />
 
       <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
         <Input
