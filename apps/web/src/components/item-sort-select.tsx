@@ -3,6 +3,13 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ItemSortOrder } from "@/lib/sort-items";
 
+const SORT_LABELS: Record<ItemSortOrder, string> = {
+  newest: "Newest first",
+  oldest: "Oldest first",
+  "name-asc": "Name (A-Z)",
+  "name-desc": "Name (Z-A)",
+};
+
 export function ItemSortSelect({
   value,
   onChange,
@@ -15,7 +22,7 @@ export function ItemSortSelect({
   return (
     <Select value={value} onValueChange={(v) => onChange(v as ItemSortOrder)}>
       <SelectTrigger className={className}>
-        <SelectValue />
+        <SelectValue>{(v: ItemSortOrder) => SORT_LABELS[v]}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="newest">Newest first</SelectItem>
