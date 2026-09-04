@@ -86,11 +86,32 @@ model Item {
   colors            ItemColor[]
   materials         ItemMaterial[]
   outfitItems       OutfitItem[]
+  events            ItemEvent[]
 
   @@index([ownerId])
   @@index([categoryId])
   @@index([brandId])
   @@map("item")
+}
+
+enum ItemEventType {
+  wash
+  alteration
+  damage
+  repair
+}
+
+model ItemEvent {
+  id          String        @id @default(cuid())
+  itemId      String
+  item        Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  type        ItemEventType
+  date        DateTime
+  description String?
+  createdAt   DateTime      @default(now())
+
+  @@index([itemId])
+  @@map("item_event")
 }
 
 model Tag {

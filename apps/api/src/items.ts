@@ -3,8 +3,11 @@ import {
   ItemCreateSchema,
   ItemUpdateSchema,
   ItemQuerySchema,
+  ItemEventCreateSchema,
   type ItemDto,
   type ItemStatsDto,
+  type ItemEventDto,
+  type ItemHistoryEntryDto,
 } from "@wardrobe/shared";
 import { LocalStorageDriver, validateAndStripImage, InvalidImageError } from "@wardrobe/storage";
 import { prisma, Prisma } from "@wardrobe/db";
@@ -89,6 +92,22 @@ export function toItemDto(item: ItemWithRelations, stats: ItemStatsDto | null = 
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
     stats,
+  };
+}
+
+function toItemEventDto(event: {
+  id: string;
+  type: "wash" | "alteration" | "damage" | "repair";
+  date: Date;
+  description: string | null;
+  createdAt: Date;
+}): ItemEventDto {
+  return {
+    id: event.id,
+    type: event.type,
+    date: event.date.toISOString(),
+    description: event.description,
+    createdAt: event.createdAt.toISOString(),
   };
 }
 
@@ -238,6 +257,94 @@ export async function itemRoutes(app: FastifyInstance) {
 
     return reply.send(toItemDto(item, stats));
   });
+
+  app.get<{ Params: { id: string } }>("/items/:id/history", async (request, reply) => {
+    const session = await requireSession(request, reply);
+    if (!session) return;
+
+    const item = await prisma.item.findUnique({ where: { id: request.params.id } });
+    if (!item || !canView(item, session.user.id)) {
+      return reply.status(404).send({ error: "Item not found." });
+    }
+
+    const [events, wears] = await Promise.all([
+      prisma.itemEvent.findMany({ where: { itemId: item.id } }),
+      prisma.outfitWear.findMany({
+        where: { outfit: { items: { some: { itemId: item.id } } } },
+        select: { id: true, wornDate: true, outfit: { select: { id: true, name: true } } },
+      }),
+    ]);
+
+    const entries: ItemHistoryEntryDto[] = [
+      ...events.map(
+        (e): ItemHistoryEntryDto => ({
+          kind: "event",
+          id: e.id,
+          type: e.type,
+          date: e.date.toISOString(),
+          description: e.description,
+        }),
+      ),
+      ...wears.map(
+        (w): ItemHistoryEntryDto => ({
+          kind: "worn",
+          id: w.id,
+          date: w.wornDate.toISOString(),
+          outfitId: w.outfit.id,
+          outfitName: w.outfit.name,
+        }),
+      ),
+    ].sort((a, b) => b.date.localeCompare(a.date));
+
+    return reply.send(entries);
+  });
+
+  app.post<{ Params: { id: string } }>("/items/:id/events", async (request, reply) => {
+    const session = await requireSession(request, reply);
+    if (!session) return;
+
+    const existing = await prisma.item.findUnique({ where: { id: request.params.id } });
+    if (!existing || !canModify(existing, session.user.id)) {
+      return reply.status(404).send({ error: "Item not found." });
+    }
+
+    const parsed = ItemEventCreateSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: parsed.error.issues[0]?.message ?? "Invalid input." });
+    }
+
+    const event = await prisma.itemEvent.create({
+      data: {
+        itemId: existing.id,
+        type: parsed.data.type,
+        date: parsed.data.date,
+        description: parsed.data.description ?? null,
+      },
+    });
+
+    return reply.status(201).send(toItemEventDto(event));
+  });
+
+  app.delete<{ Params: { id: string; eventId: string } }>(
+    "/items/:id/events/:eventId",
+    async (request, reply) => {
+      const session = await requireSession(request, reply);
+      if (!session) return;
+
+      const existing = await prisma.item.findUnique({ where: { id: request.params.id } });
+      if (!existing || !canModify(existing, session.user.id)) {
+        return reply.status(404).send({ error: "Item not found." });
+      }
+
+      const event = await prisma.itemEvent.findUnique({ where: { id: request.params.eventId } });
+      if (!event || event.itemId !== existing.id) {
+        return reply.status(404).send({ error: "Event not found." });
+      }
+
+      await prisma.itemEvent.delete({ where: { id: event.id } });
+      return reply.status(204).send();
+    },
+  );
 
   app.patch<{ Params: { id: string } }>("/items/:id", async (request, reply) => {
     const session = await requireSession(request, reply);

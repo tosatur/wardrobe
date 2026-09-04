@@ -13,6 +13,12 @@ const { prismaMock } = vi.hoisted(() => ({
     outfitWear: {
       findMany: vi.fn(),
     },
+    itemEvent: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
   },
 }));
 
@@ -172,6 +178,175 @@ describe("GET /items/:id", () => {
       lastWornDate: "2026-02-10T00:00:00.000Z",
       costPerWear: 50,
     });
+    await app.close();
+  });
+});
+
+describe("GET /items/:id/history", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("merges events and wears into one timeline, newest first", async () => {
+    const { itemRoutes } = await import("./items.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.item.findUnique).mockResolvedValue(makeItem() as never);
+    vi.mocked(prisma.itemEvent.findMany).mockResolvedValue([
+      {
+        id: "event-1",
+        type: "wash",
+        date: new Date("2026-02-01T00:00:00Z"),
+        description: "Machine wash cold",
+      },
+    ] as never);
+    vi.mocked(prisma.outfitWear.findMany).mockResolvedValue([
+      {
+        id: "wear-1",
+        wornDate: new Date("2026-03-01T00:00:00Z"),
+        outfit: { id: "outfit-1", name: "Weekend look" },
+      },
+    ] as never);
+
+    const app = Fastify();
+    await app.register(itemRoutes);
+
+    const response = await app.inject({ method: "GET", url: "/items/item-1/history" });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual([
+      { kind: "worn", id: "wear-1", date: "2026-03-01T00:00:00.000Z", outfitId: "outfit-1", outfitName: "Weekend look" },
+      { kind: "event", id: "event-1", type: "wash", date: "2026-02-01T00:00:00.000Z", description: "Machine wash cold" },
+    ]);
+    await app.close();
+  });
+
+  it("returns 404 when the item doesn't exist", async () => {
+    const { itemRoutes } = await import("./items.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.item.findUnique).mockResolvedValue(null);
+
+    const app = Fastify();
+    await app.register(itemRoutes);
+
+    const response = await app.inject({ method: "GET", url: "/items/item-1/history" });
+
+    expect(response.statusCode).toBe(404);
+    await app.close();
+  });
+});
+
+describe("POST /items/:id/events", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates an event and returns it", async () => {
+    const { itemRoutes } = await import("./items.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.item.findUnique).mockResolvedValue(makeItem() as never);
+    vi.mocked(prisma.itemEvent.create).mockResolvedValue({
+      id: "event-1",
+      type: "damage",
+      date: new Date("2026-02-01T00:00:00Z"),
+      description: "Small tear on the sleeve",
+      createdAt: new Date("2026-02-01T00:00:00Z"),
+    } as never);
+
+    const app = Fastify();
+    await app.register(itemRoutes);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/items/item-1/events",
+      payload: { type: "damage", date: "2026-02-01", description: "Small tear on the sleeve" },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(prisma.itemEvent.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          itemId: "item-1",
+          type: "damage",
+          description: "Small tear on the sleeve",
+        }),
+      }),
+    );
+    expect(response.json()).toMatchObject({ id: "event-1", type: "damage" });
+    await app.close();
+  });
+
+  it("rejects an invalid event type", async () => {
+    const { itemRoutes } = await import("./items.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.item.findUnique).mockResolvedValue(makeItem() as never);
+
+    const app = Fastify();
+    await app.register(itemRoutes);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/items/item-1/events",
+      payload: { type: "not-a-real-type", date: "2026-02-01" },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(prisma.itemEvent.create).not.toHaveBeenCalled();
+    await app.close();
+  });
+});
+
+describe("DELETE /items/:id/events/:eventId", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("deletes an event that belongs to the item", async () => {
+    const { itemRoutes } = await import("./items.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.item.findUnique).mockResolvedValue(makeItem() as never);
+    vi.mocked(prisma.itemEvent.findUnique).mockResolvedValue({
+      id: "event-1",
+      itemId: "item-1",
+    } as never);
+
+    const app = Fastify();
+    await app.register(itemRoutes);
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: "/items/item-1/events/event-1",
+    });
+
+    expect(response.statusCode).toBe(204);
+    expect(prisma.itemEvent.delete).toHaveBeenCalledWith({ where: { id: "event-1" } });
+    await app.close();
+  });
+
+  it("returns 404 when the event belongs to a different item", async () => {
+    const { itemRoutes } = await import("./items.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.item.findUnique).mockResolvedValue(makeItem() as never);
+    vi.mocked(prisma.itemEvent.findUnique).mockResolvedValue({
+      id: "event-1",
+      itemId: "some-other-item",
+    } as never);
+
+    const app = Fastify();
+    await app.register(itemRoutes);
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: "/items/item-1/events/event-1",
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(prisma.itemEvent.delete).not.toHaveBeenCalled();
     await app.close();
   });
 });

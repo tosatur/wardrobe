@@ -3,10 +3,18 @@ import type {
   CategoryDto,
   ColorDto,
   ItemDto,
+  ItemEventDto,
+  ItemHistoryEntryDto,
   ItemQueryInput,
   MaterialDto,
 } from "@wardrobe/shared";
 import { authFetch } from "./auth-client";
+
+export type ItemEventPayload = {
+  type: "wash" | "alteration" | "damage" | "repair";
+  date: string;
+  description?: string;
+};
 
 export type ItemPayload = {
   nickname?: string;
@@ -103,6 +111,33 @@ export async function updateItem(
 
 export async function deleteItem(id: string): Promise<{ error: string | null }> {
   const res = await authFetch(`/items/${id}`, { method: "DELETE" });
+  if (!res.ok) return { error: await parseErrorBody(res) };
+  return { error: null };
+}
+
+export async function listItemHistory(id: string): Promise<ItemHistoryEntryDto[]> {
+  const res = await authFetch(`/items/${id}/history`);
+  if (!res.ok) throw new Error("Failed to load item history.");
+  return res.json();
+}
+
+export async function createItemEvent(
+  id: string,
+  payload: ItemEventPayload,
+): Promise<{ data: ItemEventDto | null; error: string | null }> {
+  const res = await authFetch(`/items/${id}/events`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) return { data: null, error: await parseErrorBody(res) };
+  return { data: await res.json(), error: null };
+}
+
+export async function deleteItemEvent(
+  id: string,
+  eventId: string,
+): Promise<{ error: string | null }> {
+  const res = await authFetch(`/items/${id}/events/${eventId}`, { method: "DELETE" });
   if (!res.ok) return { error: await parseErrorBody(res) };
   return { error: null };
 }
