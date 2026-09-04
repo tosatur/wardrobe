@@ -50,7 +50,9 @@ export function DeleteOutfitDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => void handleDelete()}>Delete</AlertDialogAction>
+          <AlertDialogAction variant="destructive" onClick={() => void handleDelete()}>
+            Delete
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

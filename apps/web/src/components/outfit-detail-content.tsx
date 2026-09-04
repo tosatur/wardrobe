@@ -136,7 +136,7 @@ export function OutfitDetailContent({ id }: { id: string }) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => void handleDelete()}>
+                  <AlertDialogAction variant="destructive" onClick={() => void handleDelete()}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
