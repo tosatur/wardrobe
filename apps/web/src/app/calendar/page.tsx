@@ -10,8 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { listWears } from "@/lib/outfits-client";
 import { OutfitCanvas } from "@/components/outfit-canvas";
+import { DayWeather } from "@/components/day-weather";
 import { getWeather } from "@/lib/weather-client";
-import { weatherIcon, weatherLabel } from "@/lib/weather";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -165,22 +165,7 @@ function CalendarPageContent() {
                 >
                   {day.getDate()}
                 </span>
-                {(() => {
-                  const weather = weatherByDay.get(key);
-                  if (!weather) return null;
-                  const Icon = weatherIcon(weather.weatherCode);
-                  return (
-                    <div
-                      className="flex items-center gap-1 text-[0.65rem] text-muted-foreground"
-                      title={weatherLabel(weather.weatherCode)}
-                    >
-                      <Icon className="size-3" />
-                      <span>
-                        {Math.round(weather.tempMaxC)}°/{Math.round(weather.tempMinC)}°
-                      </span>
-                    </div>
-                  );
-                })()}
+                <DayWeather weather={weatherByDay.get(key)} />
                 <div className="flex flex-wrap gap-1">
                   {dayWears.slice(0, 2).map((wear) => (
                     <Link
