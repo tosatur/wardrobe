@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { SectionEyebrow } from "@/components/section-eyebrow";
 import { TagPicker } from "@/components/tag-picker";
 import { PhotoUpload } from "@/components/photo-upload";
@@ -296,19 +297,22 @@ export function ItemForm({ item }: { item?: ItemDto }) {
               </Field>
               <Field>
                 <FieldLabel htmlFor="price">Price</FieldLabel>
-                <div className="flex gap-2">
-                  <Input
+                <InputGroup>
+                  <InputGroupAddon className="pr-0">
+                    <CurrencySelect
+                      value={currency}
+                      onChange={(next) => setValue("currency", next)}
+                      triggerClassName="h-6 gap-1 border-0 bg-transparent px-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                    />
+                  </InputGroupAddon>
+                  <InputGroupInput
                     id="price"
                     type="number"
                     step="0.01"
                     min="0"
-                    className="flex-1"
                     {...register("price")}
                   />
-                  <div className="w-28 shrink-0">
-                    <CurrencySelect value={currency} onChange={(next) => setValue("currency", next)} />
-                  </div>
-                </div>
+                </InputGroup>
                 {errors.price && <FieldError>{errors.price.message}</FieldError>}
               </Field>
             </div>
