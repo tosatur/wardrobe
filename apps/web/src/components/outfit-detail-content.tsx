@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { CalendarPlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StarRating } from "@/components/star-rating";
 import {
   AlertDialog,
@@ -81,24 +84,49 @@ export function OutfitDetailContent({ id }: { id: string }) {
       <Card className="h-fit">
         <CardHeader className="flex flex-row items-start justify-between">
           <CardTitle>{outfit.name}</CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => void handleLogToday()}>
-              Log today
-            </Button>
+          <ButtonGroup>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Log today"
+                    onClick={() => void handleLogToday()}
+                  />
+                }
+              >
+                <CalendarPlusIcon />
+              </TooltipTrigger>
+              <TooltipContent>Log today</TooltipContent>
+            </Tooltip>
             {/* Replace, not push: same reasoning as ItemDetailContent's Edit
                 link - swapping to the edit view of the same outfit shouldn't
                 grow the back-stack. */}
-            <Button
-              variant="outline"
-              size="sm"
-              render={<Link href={`/outfits/${id}/edit`} replace />}
-            >
-              Edit
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Edit outfit"
+                    render={<Link href={`/outfits/${id}/edit`} replace />}
+                  />
+                }
+              >
+                <PencilIcon />
+              </TooltipTrigger>
+              <TooltipContent>Edit outfit</TooltipContent>
+            </Tooltip>
             <AlertDialog>
-              <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
-                Delete
-              </AlertDialogTrigger>
+              <Tooltip>
+                <TooltipTrigger
+                  render={<AlertDialogTrigger render={<Button variant="destructive" size="icon" aria-label="Delete outfit" />} />}
+                >
+                  <Trash2Icon />
+                </TooltipTrigger>
+                <TooltipContent>Delete outfit</TooltipContent>
+              </Tooltip>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete this outfit?</AlertDialogTitle>
@@ -114,7 +142,7 @@ export function OutfitDetailContent({ id }: { id: string }) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
+          </ButtonGroup>
         </CardHeader>
         <CardContent className="space-y-6">
           {outfit.description && <p className="text-sm">{outfit.description}</p>}
