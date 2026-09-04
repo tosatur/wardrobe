@@ -22,7 +22,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <div
       key={section}
-      className="h-[calc(100vh-4rem)] overflow-y-auto animate-in fade-in-0 duration-300"
+      className="h-[calc(100vh-4rem)] overflow-y-auto animate-in fade-in-0 duration-300 motion-reduce:animate-none"
     >
       {children}
     </div>

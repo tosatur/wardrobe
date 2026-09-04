@@ -49,7 +49,7 @@ function PaletteTile({ item, disabled }: { item: ItemDto; disabled: boolean }) {
       {...(disabled ? {} : listeners)}
       {...(disabled ? {} : attributes)}
       className={cn(
-        "group relative mb-3 block touch-none break-inside-avoid transition-opacity duration-150",
+        "group relative mb-3 block touch-none break-inside-avoid transition-opacity duration-200 motion-reduce:transition-none",
         disabled && "opacity-30",
         !disabled && isDragging && "opacity-40",
         !disabled && !isDragging && "cursor-grab active:cursor-grabbing",
@@ -62,8 +62,8 @@ function PaletteTile({ item, disabled }: { item: ItemDto; disabled: boolean }) {
         alt={item.nickname ?? item.category.name}
         className="pointer-events-none block h-auto w-full"
       />
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-      <p className="pointer-events-none absolute inset-x-0 bottom-0 truncate p-2 font-mono text-[0.65rem] tracking-wide text-white uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none" />
+      <p className="pointer-events-none absolute inset-x-0 bottom-0 truncate p-2 font-mono text-[0.65rem] tracking-wide text-white uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
         {item.nickname ?? item.category.name}
       </p>
     </div>
@@ -100,7 +100,7 @@ export function ItemPalette() {
       <div
         aria-hidden={!showDropZone}
         className={cn(
-          "pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/90 backdrop-blur-sm opacity-0 transition-opacity duration-200",
+          "pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/90 backdrop-blur-sm opacity-0 transition-opacity duration-200 motion-reduce:transition-none",
           showDropZone && "opacity-100",
           isOver && "bg-destructive/20",
         )}

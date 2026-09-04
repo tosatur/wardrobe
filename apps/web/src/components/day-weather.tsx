@@ -8,9 +8,10 @@ export function DayWeather({ weather }: { weather: WeatherDayDto | undefined }) 
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-top-1 flex items-center gap-1 text-[0.65rem] text-muted-foreground duration-300 ease-out"
+      className="flex items-center gap-1 text-[0.65rem] text-muted-foreground"
       title={weatherLabel(weather.weatherCode)}
     >
+      {/* eslint-disable-next-line react-hooks/static-components -- weatherIcon selects a stable, statically-imported lucide icon, not one created during render */}
       <Icon className="size-3" />
       <span>
         {Math.round(weather.tempMaxC)}°/{Math.round(weather.tempMinC)}°
