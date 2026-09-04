@@ -17,7 +17,7 @@ export function CalendarWearTile({
   return (
     <HoverCard>
       <HoverCardTrigger
-        render={<Link href={`/outfits/${wear.outfit.id}`} title={wear.outfit.name} className={className} />}
+        render={<Link href={`/outfits/${wear.outfit.id}`} className={className} />}
       >
         <OutfitCanvas
           readOnly

@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { CalendarWearTile } from "@/components/calendar-wear-tile";
 import { DayWeather } from "@/components/day-weather";
 import { getWeather } from "@/lib/weather-client";
 import { toDateKey } from "@/lib/date";
+import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -60,7 +61,15 @@ export default function CalendarPage() {
 
 function CalendarPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+  // The day-summary and outfit-detail modals are soft navigations to
+  // /calendar/[date] and /outfits/[id], which change the URL - and drop its
+  // ?month= query - out from under this still-mounted page (see the
+  // matching hook used by the closet/outfits list pages). Without this, the
+  // browsed month would snap back to the current real month behind the
+  // modal, remounting the grid and replaying its mount animation.
+  const searchParams = useFrozenSearchParams("/calendar");
+
   const month = parseMonthKey(searchParams.get("month"));
   const [direction, setDirection] = useState<"next" | "prev">("next");
 
@@ -103,6 +112,8 @@ function CalendarPageContent() {
   });
 
   const weatherByDay = new Map((weatherDays ?? []).map((w) => [w.date, w]));
+
+  const todayKey = toDateKey(new Date());
 
   const wearsByDay = new Map<string, typeof wears>();
   for (const wear of wears ?? []) {
@@ -171,6 +182,7 @@ function CalendarPageContent() {
             const key = toDateKey(day);
             const dayWears = wearsByDay.get(key) ?? [];
             const inMonth = day.getMonth() === monthStart.getMonth();
+            const isToday = key === todayKey;
             return (
               <div
                 key={key}
@@ -181,8 +193,10 @@ function CalendarPageContent() {
               >
                 {/* Stretched link: fills the cell so the whole day is
                     clickable, while the outfit thumbnails below (given their
-                    own `relative` stacking below) still capture their own
-                    clicks and navigate to the outfit instead. */}
+                    own `pointer-events-auto` opt-back-in) still capture their
+                    own clicks and navigate to the outfit instead. The two
+                    content rows below are pointer-events-none so they don't
+                    shadow this link over their own (mostly empty) boxes. */}
                 <Link
                   href={`/calendar/${key}`}
                   className="absolute inset-0"
@@ -192,22 +206,26 @@ function CalendarPageContent() {
                     day: "numeric",
                   })}`}
                 />
-                <div className="relative flex items-center justify-between">
+                <div className="pointer-events-none relative flex items-center justify-between">
                   <span
                     className={cn(
                       "font-mono text-xs",
-                      inMonth ? "text-foreground" : "text-muted-foreground/60",
+                      isToday
+                        ? "flex size-5 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground"
+                        : inMonth
+                          ? "text-foreground"
+                          : "text-muted-foreground/60",
                     )}
                   >
                     {day.getDate()}
                   </span>
                   <DayWeather weather={weatherByDay.get(key)} />
                 </div>
-                <div className="relative flex flex-1 items-center justify-center">
+                <div className="pointer-events-none relative flex flex-1 items-center justify-center">
                   {dayWears.length === 1 && (
                     <CalendarWearTile
                       wear={dayWears[0]}
-                      className="block aspect-square w-[74%] overflow-hidden rounded-sm"
+                      className="pointer-events-auto block aspect-square w-[74%] overflow-hidden rounded-sm"
                     />
                   )}
                   {dayWears.length > 1 && (
@@ -223,7 +241,7 @@ function CalendarPageContent() {
                             key={wear.id}
                             wear={wear}
                             className={cn(
-                              "mx-auto block aspect-square overflow-hidden rounded-sm",
+                              "pointer-events-auto mx-auto block aspect-square overflow-hidden rounded-sm",
                               isApex ? "col-span-2 w-[30%]" : wearTileColumnWidthClass(dayWears.length),
                             )}
                           />
