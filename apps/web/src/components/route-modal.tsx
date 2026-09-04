@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +39,18 @@ export function RouteModal({
   className?: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [openedPathname] = useState(pathname);
   const [open, setOpen] = useState(true);
+
+  // A link inside the modal's own content can lead somewhere this @modal
+  // slot has no interceptor for (e.g. from an item's detail view to an
+  // outfit page). Next.js then has nothing new to render in the slot and
+  // keeps this stale popup mounted on top of the page that navigated in.
+  // Once the URL has moved off the route this modal was opened for, stop
+  // rendering rather than calling router.back() again — the navigation
+  // already happened, so going back would undo it.
+  if (pathname !== openedPathname) return null;
 
   return (
     <Dialog
