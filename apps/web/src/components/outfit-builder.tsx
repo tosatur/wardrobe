@@ -26,6 +26,7 @@ import { OutfitCanvas } from "@/components/outfit-canvas";
 import { OutfitDragOverlay, type ActiveDragGhost } from "@/components/outfit-drag-overlay";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
 import { createOutfit, updateOutfit, type OutfitPayload } from "@/lib/outfits-client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 type OutfitFormValues = {
   name: string;
@@ -58,7 +59,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
     control,
     setValue,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty, isSubmitSuccessful },
   } = useForm<OutfitFormValues>({ defaultValues: toFormValues(outfit) });
 
   const rating = useWatch({ control, name: "rating" });
@@ -70,7 +71,10 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
   const movePlacement = useOutfitCanvasStore((s) => s.movePlacement);
   const removePlacement = useOutfitCanvasStore((s) => s.removePlacement);
   const bringToFront = useOutfitCanvasStore((s) => s.bringToFront);
-  const clearPlacements = useOutfitCanvasStore((s) => s.reset);
+  const clearPlacements = useOutfitCanvasStore((s) => s.clearAll);
+  const isCanvasDirty = useOutfitCanvasStore((s) => s.isDirty);
+
+  useUnsavedChanges(!isSubmitSuccessful && (isDirty || isCanvasDirty));
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 

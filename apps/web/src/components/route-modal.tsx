@@ -9,6 +9,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useUnsavedChangesStore } from "@/lib/unsaved-changes-store";
 import { cn } from "@/lib/utils";
 
 /**
@@ -42,6 +53,9 @@ export function RouteModal({
   const pathname = usePathname();
   const [openedPathname] = useState(pathname);
   const [open, setOpen] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const isDirty = useUnsavedChangesStore((s) => s.isDirty);
+  const setDirty = useUnsavedChangesStore((s) => s.setDirty);
 
   // A link inside the modal's own content can lead somewhere this @modal
   // slot has no interceptor for (e.g. from an item's detail view to an
@@ -52,21 +66,57 @@ export function RouteModal({
   // already happened, so going back would undo it.
   if (pathname !== openedPathname) return null;
 
+  // Closing (X, backdrop, Escape) on a form with unsaved changes asks first
+  // instead of discarding silently. A successful save navigates away on its
+  // own (see ItemForm/OutfitBuilder), which never reaches this handler.
+  function handleOpenChange(next: boolean) {
+    if (next) return setOpen(true);
+    if (isDirty) {
+      setConfirmOpen(true);
+      return;
+    }
+    setOpen(false);
+  }
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-      onOpenChangeComplete={(open) => {
-        if (!open) router.back();
-      }}
-    >
-      <DialogContent className={cn("max-h-[85vh] overflow-y-auto sm:max-w-3xl lg:max-w-5xl", className)}>
-        <DialogHeader className={hideHeader ? "sr-only" : undefined}>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        {children}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        onOpenChangeComplete={(open) => {
+          if (!open) router.back();
+        }}
+      >
+        <DialogContent className={cn("max-h-[85vh] overflow-y-auto sm:max-w-3xl lg:max-w-5xl", className)}>
+          <DialogHeader className={hideHeader ? "sr-only" : undefined}>
+            <DialogTitle>{title}</DialogTitle>
+            {description && <DialogDescription>{description}</DialogDescription>}
+          </DialogHeader>
+          {children}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard your changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Leaving now will discard them.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setDirty(false);
+                setOpen(false);
+              }}
+            >
+              Discard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Nav } from "@/components/nav";
+import { UnsavedChangesGuard } from "@/components/unsaved-changes-guard";
 import { Providers } from "./providers";
 
 // One grotesque family for body + display (regular vs. black weight) rather
@@ -65,6 +66,7 @@ export default function RootLayout({
             {children}
             {modal}
             <Toaster />
+            <UnsavedChangesGuard />
           </Providers>
         </ThemeProvider>
       </body>

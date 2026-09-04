@@ -26,6 +26,7 @@ import { BrandPicker } from "@/components/brand-picker";
 import { ColorPicker } from "@/components/color-picker";
 import { MaterialPicker } from "@/components/material-picker";
 import { createItem, updateItem, uploadItemPhoto, type ItemPayload } from "@/lib/items-client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 type ItemFormValues = {
   nickname: string;
@@ -83,7 +84,7 @@ export function ItemForm({ item }: { item?: ItemDto }) {
     setValue,
     setError,
     clearErrors,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty, isSubmitSuccessful },
   } = useForm<ItemFormValues>({ defaultValues: toFormValues(item) });
 
   const categoryId = useWatch({ control, name: "categoryId" });
@@ -99,6 +100,8 @@ export function ItemForm({ item }: { item?: ItemDto }) {
   // right after createItem succeeds.
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+
+  useUnsavedChanges(!isSubmitSuccessful && (isDirty || photoFile !== null));
 
   function handlePhotoSelect(file: File | null) {
     if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);

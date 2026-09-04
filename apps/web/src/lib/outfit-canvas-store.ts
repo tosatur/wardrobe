@@ -21,17 +21,26 @@ type PaletteItem = {
 type OutfitCanvasStore = {
   placements: CanvasPlacement[];
   nextZIndex: number;
+  // Content changes only (add/move/remove) - merely picking an item up
+  // (bringToFront, fired on drag start) doesn't count, or every click on a
+  // placed item would trip the unsaved-changes guard.
+  isDirty: boolean;
   addPlacement: (item: PaletteItem, x: number, y: number) => void;
   movePlacement: (itemId: string, x: number, y: number) => void;
   bringToFront: (itemId: string) => void;
   removePlacement: (itemId: string) => void;
   loadPlacements: (items: OutfitItemDto[]) => void;
+  /** The canvas's own "Clear all" button - a real edit, unlike `reset`. */
+  clearAll: () => void;
+  /** Wipes the canvas back to its pre-edit state, e.g. starting a fresh
+   *  outfit - not a user edit, so it doesn't mark the canvas dirty. */
   reset: () => void;
 };
 
 export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
   placements: [],
   nextZIndex: 1,
+  isDirty: false,
 
   addPlacement: (item, x, y) =>
     set((state) => {
@@ -50,12 +59,14 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
           },
         ],
         nextZIndex: state.nextZIndex + 1,
+        isDirty: true,
       };
     }),
 
   movePlacement: (itemId, x, y) =>
     set((state) => ({
       placements: state.placements.map((p) => (p.itemId === itemId ? { ...p, x, y } : p)),
+      isDirty: true,
     })),
 
   bringToFront: (itemId) =>
@@ -67,7 +78,10 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
     })),
 
   removePlacement: (itemId) =>
-    set((state) => ({ placements: state.placements.filter((p) => p.itemId !== itemId) })),
+    set((state) => ({
+      placements: state.placements.filter((p) => p.itemId !== itemId),
+      isDirty: true,
+    })),
 
   loadPlacements: (items) =>
     set({
@@ -81,7 +95,15 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
         photoCutoutUrl: oi.item.photoCutoutUrl,
       })),
       nextZIndex: Math.max(0, ...items.map((oi) => oi.zIndex)) + 1,
+      isDirty: false,
     }),
 
-  reset: () => set({ placements: [], nextZIndex: 1 }),
+  clearAll: () =>
+    set((state) => ({
+      placements: [],
+      nextZIndex: 1,
+      isDirty: state.isDirty || state.placements.length > 0,
+    })),
+
+  reset: () => set({ placements: [], nextZIndex: 1, isDirty: false }),
 }));
