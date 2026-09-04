@@ -21,8 +21,14 @@ export function Nav() {
 
   function linkClassName(href: string) {
     return cn(
+      // text-foreground/70 rather than text-muted-foreground: the header's
+      // translucent glass background (deliberately not opaque, see its own
+      // comment above) lets the page's own light-mode color bleed through
+      // the blur, which washes out muted-foreground's flatter gray past
+      // legibility. A fraction of the strong (near-white, dark-scoped)
+      // foreground token holds contrast in both themes instead.
       "transition-colors hover:text-foreground",
-      isActive(href) ? "text-foreground" : "text-muted-foreground",
+      isActive(href) ? "text-foreground" : "text-foreground/70",
     );
   }
 
