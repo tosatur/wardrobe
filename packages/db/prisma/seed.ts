@@ -24,6 +24,14 @@ const colors: { name: string; hex: string }[] = [
   { name: "Tan", hex: "#D2B48C" },
   { name: "Beige", hex: "#E8DCC8" },
   { name: "Cream", hex: "#FFFDD0" },
+  { name: "Ivory", hex: "#FFFFF0" },
+  { name: "Camel", hex: "#C19A6B" },
+  { name: "Khaki", hex: "#A99A6B" },
+  { name: "Rust", hex: "#B7410E" },
+  { name: "Mustard", hex: "#E1AD01" },
+  { name: "Coral", hex: "#FF7F50" },
+  { name: "Mint", hex: "#98D8C8" },
+  { name: "Slate", hex: "#546E7A" },
 ];
 
 const materials: string[] = [
@@ -50,14 +58,45 @@ const materials: string[] = [
 const categories: Record<string, string[]> = {
   Dress: ["A-line", "Maxi", "Midi", "Mini", "Wrap"],
   Tops: ["T-shirt", "Button-up", "Blouse", "Tank top", "Sweater", "Cardigan", "Hoodie"],
-  Bottoms: ["Jeans", "Trousers", "Shorts", "Skirt", "Leggings"],
-  Outerwear: ["Jacket", "Coat", "Blazer", "Vest", "Parka"],
-  Footwear: ["Sneakers", "Boots", "Sandals", "Heels", "Flats"],
-  Accessories: ["Belt", "Scarf", "Hat", "Bag", "Jewelry", "Sunglasses"],
+  Bottoms: ["Jeans", "Trousers", "Chinos", "Shorts", "Skirt", "Leggings"],
+  Outerwear: ["Jacket", "Coat", "Trench coat", "Windbreaker", "Blazer", "Vest", "Parka"],
+  Footwear: ["Sneakers", "Boots", "Loafers", "Sandals", "Slides", "Heels", "Flats"],
+  Accessories: ["Belt", "Scarf", "Hat", "Gloves", "Tie", "Watch", "Bag", "Jewelry", "Sunglasses"],
   Activewear: ["Sports bra", "Leggings", "Running shorts", "Track jacket"],
   Sleepwear: ["Pyjama", "Robe", "Nightgown"],
   Swimwear: ["One-piece", "Bikini", "Swim trunks"],
+  Suits: ["Two-piece", "Three-piece", "Waistcoat"],
 };
+
+const brands: string[] = [
+  "Nike",
+  "Adidas",
+  "New Balance",
+  "Converse",
+  "Vans",
+  "Dr. Martens",
+  "Levi's",
+  "Gap",
+  "Uniqlo",
+  "H&M",
+  "Zara",
+  "COS",
+  "Everlane",
+  "Muji",
+  "Ralph Lauren",
+  "Tommy Hilfiger",
+  "Calvin Klein",
+  "Champion",
+  "Carhartt",
+  "Patagonia",
+  "The North Face",
+  "Acne Studios",
+  "Aritzia",
+  "Reformation",
+  "Massimo Dutti",
+  "Common Projects",
+  "Burberry",
+];
 
 async function main() {
   for (const color of colors) {
@@ -73,6 +112,11 @@ async function main() {
     await prisma.material.upsert({ where: { name }, create: { name }, update: {} });
   }
   console.log(`Seeded ${materials.length} materials.`);
+
+  for (const name of brands) {
+    await prisma.brand.upsert({ where: { name }, create: { name }, update: {} });
+  }
+  console.log(`Seeded ${brands.length} brands.`);
 
   let categoryCount = 0;
   for (const [parentName, children] of Object.entries(categories)) {
