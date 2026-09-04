@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -57,19 +58,19 @@ export function AuthStatus() {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{session.user.email}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/profile">Profile</Link>} />
-        {session.user.role === "admin" && (
-          <DropdownMenuItem render={<Link href="/admin">Create a user</Link>} />
-        )}
-        <DropdownMenuItem
-          onClick={() => {
-            void signOut().then(() => setSession(null));
-          }}
-        >
-          Log out
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>{session.user.email}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href="/profile">Profile</Link>} />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => {
+              void signOut().then(() => setSession(null));
+            }}
+          >
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
