@@ -68,7 +68,7 @@ export function PhotoUpload({
         <PhotoViewToggle
           showOriginal={showOriginal}
           onChange={setShowOriginal}
-          className="absolute top-3 right-3"
+          className="absolute right-3 bottom-3"
         />
       )}
       <input

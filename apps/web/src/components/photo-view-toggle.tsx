@@ -1,6 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { SquircleIcon, SquircleDashedIcon } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,29 +21,23 @@ export function PhotoViewToggle({
   className?: string;
 }) {
   return (
-    <div className={cn("flex gap-1", className)}>
-      <Button
-        type="button"
-        size="sm"
-        variant={showOriginal ? "outline" : "default"}
-        className={cn(
-          showOriginal && "border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55",
-        )}
-        onClick={() => onChange(false)}
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Toggle
+            pressed={showOriginal}
+            onPressedChange={onChange}
+            aria-label={showOriginal ? "Showing original photo" : "Showing cutout photo"}
+            className={cn(
+              "border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55 hover:text-white data-[state=on]:bg-black/55 data-[state=on]:text-white",
+              className,
+            )}
+          />
+        }
       >
-        Cutout
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={showOriginal ? "default" : "outline"}
-        className={cn(
-          !showOriginal && "border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55",
-        )}
-        onClick={() => onChange(true)}
-      >
-        Original
-      </Button>
-    </div>
+        {showOriginal ? <SquircleIcon /> : <SquircleDashedIcon />}
+      </TooltipTrigger>
+      <TooltipContent>{showOriginal ? "Original" : "Cutout"}</TooltipContent>
+    </Tooltip>
   );
 }
