@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +12,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { API_URL } from "@/lib/auth-client";
-import { getItem } from "@/lib/items-client";
+import { getItem, updateItem } from "@/lib/items-client";
 import { EmptyState } from "@/components/empty-state";
 import { currencySymbol } from "@wardrobe/shared";
 
 export function ItemDetailContent({ id }: { id: string }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
 
@@ -25,6 +27,19 @@ export function ItemDetailContent({ id }: { id: string }) {
     queryFn: () => getItem(id),
     refetchInterval: (query) => (query.state.data?.photoStatus === "processing" ? 2000 : false),
   });
+
+  async function handleToggleArchived() {
+    if (!item) return;
+    const nextStatus = item.status === "archived" ? "active" : "archived";
+    const { error } = await updateItem(id, { status: nextStatus });
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(nextStatus === "archived" ? "Item archived." : "Item unarchived.");
+    void queryClient.invalidateQueries({ queryKey: ["item", id] });
+    void queryClient.invalidateQueries({ queryKey: ["items"] });
+  }
 
   if (isPending) {
     return (
@@ -105,6 +120,9 @@ export function ItemDetailContent({ id }: { id: string }) {
               render={<Link href={`/items/${id}/edit`} replace />}
             >
               Edit
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => void handleToggleArchived()}>
+              {item.status === "archived" ? "Unarchive" : "Archive"}
             </Button>
             <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
               Delete

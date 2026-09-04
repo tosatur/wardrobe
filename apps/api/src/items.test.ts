@@ -65,6 +65,7 @@ function makeItem(overrides: Partial<Record<string, unknown>> = {}) {
     photoThumbnailKey: null,
     photoStatus: "none" as const,
     visibility: "private" as const,
+    status: "active" as const,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
     ...ITEM_INCLUDE_SHAPE,

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { EllipsisVertical } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { ItemDto } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,14 +14,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
+import { updateItem } from "@/lib/items-client";
 import { cn } from "@/lib/utils";
 
 /**
- * The kebab menu (View/Edit/Use in new outfit/Delete) shared by every item
- * display variant - masonry and grid cards, and the list row.
+ * The kebab menu (View/Edit/Use in new outfit/Archive/Delete) shared by
+ * every item display variant - masonry and grid cards, and the list row.
  */
 export function ItemCardMenu({ item, triggerClassName }: { item: ItemDto; triggerClassName?: string }) {
+  const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  async function handleToggleArchived() {
+    const nextStatus = item.status === "archived" ? "active" : "archived";
+    const { error } = await updateItem(item.id, { status: nextStatus });
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(nextStatus === "archived" ? "Item archived." : "Item unarchived.");
+    void queryClient.invalidateQueries({ queryKey: ["items"] });
+    void queryClient.invalidateQueries({ queryKey: ["item", item.id] });
+  }
 
   return (
     <>
@@ -49,6 +65,9 @@ export function ItemCardMenu({ item, triggerClassName }: { item: ItemDto; trigge
               Use in new outfit
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem onClick={() => void handleToggleArchived()}>
+            {item.status === "archived" ? "Unarchive" : "Archive"}
+          </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             Delete
           </DropdownMenuItem>

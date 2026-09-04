@@ -124,6 +124,18 @@ function ItemsPageContent() {
             Your closet
           </h1>
           <div className="flex items-center gap-2">
+            {/* A forced hard navigation, not Link: the (.)items/[id]
+                interceptor treats any soft navigation to /items/* as an
+                overlay on this page, and there's no item with id "archive"
+                to show - see the analogous comment in outfits/page.tsx. */}
+            <Button
+              type="button"
+              variant="outline"
+              // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
+              onClick={() => (window.location.href = "/items/archive")}
+            >
+              Archive
+            </Button>
             <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
             <Button render={<Link href="/items/new" />}>+ Add item</Button>
           </div>

@@ -7,6 +7,9 @@ export type ItemVisibility = z.infer<typeof ItemVisibilitySchema>;
 export const PhotoStatusSchema = z.enum(["none", "processing", "ready", "failed"]);
 export type PhotoStatus = z.infer<typeof PhotoStatusSchema>;
 
+export const ItemStatusSchema = z.enum(["active", "archived"]);
+export type ItemStatus = z.infer<typeof ItemStatusSchema>;
+
 const tagNameSchema = z.string().trim().min(1).max(50);
 
 // Plain field schemas with no .default(), shared by both create and update
@@ -24,6 +27,7 @@ const itemFields = {
   currency: CurrencyCodeSchema.optional(),
   notes: z.string().trim().max(2000).optional(),
   visibility: ItemVisibilitySchema,
+  status: ItemStatusSchema.optional(),
   tags: z.array(tagNameSchema).max(20),
 };
 
@@ -47,6 +51,7 @@ export const ItemQuerySchema = z.object({
   tag: z.string().trim().min(1).optional(),
   q: z.string().trim().max(200).optional(),
   photoStatus: PhotoStatusSchema.optional(),
+  status: ItemStatusSchema.optional(),
 });
 export type ItemQueryInput = z.infer<typeof ItemQuerySchema>;
 
@@ -80,6 +85,7 @@ export const ItemDtoSchema = z.object({
   photoThumbnailUrl: z.string().nullable(),
   photoStatus: PhotoStatusSchema,
   visibility: ItemVisibilitySchema,
+  status: ItemStatusSchema,
   tags: z.array(z.string()),
   createdAt: z.string(),
   updatedAt: z.string(),

@@ -47,6 +47,11 @@ enum ItemVisibility {
   public
 }
 
+enum ItemStatus {
+  active
+  archived
+}
+
 enum PhotoStatus {
   none
   processing
@@ -74,6 +79,7 @@ model Item {
   photoThumbnailKey String?
   photoStatus       PhotoStatus    @default(none)
   visibility        ItemVisibility @default(private)
+  status            ItemStatus     @default(active)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   tags              ItemTag[]

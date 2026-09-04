@@ -20,6 +20,7 @@ export type ItemPayload = {
   currency?: string;
   notes?: string;
   visibility?: "private" | "public";
+  status?: "active" | "archived";
   tags?: string[];
 };
 

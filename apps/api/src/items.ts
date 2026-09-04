@@ -64,6 +64,7 @@ export function toItemDto(item: ItemWithRelations, stats: ItemStatsDto | null = 
     photoThumbnailUrl: item.photoThumbnailKey ? `/items/${item.id}/photo/thumbnail` : null,
     photoStatus: item.photoStatus,
     visibility: item.visibility,
+    status: item.status,
     tags: item.tags.map((it) => it.tag.name),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
@@ -155,9 +156,14 @@ export async function itemRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.status(400).send({ error: "Invalid query parameters." });
     }
-    const { categoryId, colorId, brandId, materialId, tag, q, photoStatus } = parsed.data;
+    const { categoryId, colorId, brandId, materialId, tag, q, photoStatus, status } = parsed.data;
 
-    const conditions: Prisma.ItemWhereInput[] = [{ ownerId: session.user.id }];
+    // Archived items stay out of the closet, search, and outfit-builder
+    // palette unless a caller explicitly asks for them (the archive page).
+    const conditions: Prisma.ItemWhereInput[] = [
+      { ownerId: session.user.id },
+      { status: status ?? "active" },
+    ];
     if (categoryId) {
       conditions.push({ OR: [{ categoryId }, { category: { parentId: categoryId } }] });
     }
