@@ -57,6 +57,7 @@ function makeItem(overrides: Partial<Record<string, unknown>> = {}) {
     size: null,
     purchaseDate: null,
     price: null,
+    currency: "USD",
     notes: null,
     photoOriginalKey: null,
     photoOriginalMime: null,

@@ -11,6 +11,7 @@ export type Session = {
     locationName: string | null;
     locationLat: number | null;
     locationLon: number | null;
+    defaultCurrency: string;
   };
 };
 

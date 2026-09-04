@@ -35,6 +35,7 @@ export const auth = betterAuth({
       locationName: { type: "string", required: false },
       locationLat: { type: "number", required: false },
       locationLon: { type: "number", required: false },
+      defaultCurrency: { type: "string", required: false, defaultValue: "USD" },
     },
   },
   plugins: [admin({ defaultRole: "member" })],

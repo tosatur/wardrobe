@@ -10,6 +10,7 @@ describe("ItemCreateSchema", () => {
       expect(result.data.colorIds).toEqual([]);
       expect(result.data.materialIds).toEqual([]);
       expect(result.data.tags).toEqual([]);
+      expect(result.data.currency).toBe("USD");
     }
   });
 
@@ -23,6 +24,7 @@ describe("ItemCreateSchema", () => {
       size: "M",
       purchaseDate: "2024-01-15",
       price: 129.99,
+      currency: "EUR",
       notes: "Winter jacket",
       visibility: "public",
       tags: ["winter", "formal"],
@@ -42,6 +44,11 @@ describe("ItemCreateSchema", () => {
 
   it("rejects a negative price", () => {
     const result = ItemCreateSchema.safeParse({ categoryId: "cat_shoes", price: -5 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an unsupported currency code", () => {
+    const result = ItemCreateSchema.safeParse({ categoryId: "cat_shoes", currency: "XXX" });
     expect(result.success).toBe(false);
   });
 
@@ -110,6 +117,7 @@ describe("ItemUpdateSchema", () => {
       expect(result.data).not.toHaveProperty("materialIds");
       expect(result.data).not.toHaveProperty("visibility");
       expect(result.data).not.toHaveProperty("tags");
+      expect(result.data).not.toHaveProperty("currency");
       expect(result.data.notes).toBe("updated");
     }
   });

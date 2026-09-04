@@ -17,6 +17,7 @@ export type ItemPayload = {
   size?: string;
   purchaseDate?: string;
   price?: number;
+  currency?: string;
   notes?: string;
   visibility?: "private" | "public";
   tags?: string[];

@@ -1,3 +1,4 @@
+export * from "./currency.js";
 export * from "./item.js";
 export * from "./outfit.js";
 export * from "./tag.js";

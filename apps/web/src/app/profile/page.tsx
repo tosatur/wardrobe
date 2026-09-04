@@ -7,6 +7,7 @@ import { updateProfile, changeEmail, changePassword } from "@/lib/users-client";
 import { geocodeSearch } from "@/lib/weather-client";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CurrencySelect } from "@/components/currency-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,6 +103,16 @@ export default function ProfilePage() {
       return;
     }
     setLocationQuery("");
+    void getSession().then(setSession);
+  }
+
+  async function handleCurrencyChange(defaultCurrency: string) {
+    const { error } = await updateProfile({ defaultCurrency });
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success("Default currency updated.");
     void getSession().then(setSession);
   }
 
@@ -229,6 +240,25 @@ export default function ProfilePage() {
               Clear location
             </Button>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferences</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Field>
+            <FieldLabel htmlFor="profile-currency">Default currency</FieldLabel>
+            <p className="text-sm text-muted-foreground">
+              Used to prefill new items&apos; price currency.
+            </p>
+            <CurrencySelect
+              id="profile-currency"
+              value={session.user.defaultCurrency}
+              onChange={(next) => void handleCurrencyChange(next)}
+            />
+          </Field>
         </CardContent>
       </Card>
 

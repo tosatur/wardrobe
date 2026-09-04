@@ -15,6 +15,7 @@ export async function updateProfile(data: {
   locationName?: string | null;
   locationLat?: number | null;
   locationLon?: number | null;
+  defaultCurrency?: string;
 }): Promise<{ error: string | null }> {
   const res = await authFetch("/api/auth/update-user", {
     method: "POST",

@@ -1,4 +1,3 @@
-
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -16,21 +15,22 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String
-  role          Role      @default(member)
-  createdAt     DateTime  @default(now())
-  emailVerified Boolean   @default(false)
-  image         String?
-  locationName  String?
-  locationLat   Float?
-  locationLon   Float?
-  avatarKey     String?
-  avatarMime    String?
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  role            Role      @default(member)
+  createdAt       DateTime  @default(now())
+  emailVerified   Boolean   @default(false)
+  image           String?
+  locationName    String?
+  locationLat     Float?
+  locationLon     Float?
+  defaultCurrency String    @default("USD")
+  avatarKey       String?
+  avatarMime      String?
+  updatedAt       DateTime  @updatedAt
+  sessions        Session[]
+  accounts        Account[]
 
   banned     Boolean?  @default(false)
   banReason  String?
@@ -66,6 +66,7 @@ model Item {
   size              String?
   purchaseDate      DateTime?
   price             Decimal?       @db.Decimal(10, 2)
+  currency          String         @default("USD")
   notes             String?
   photoOriginalKey  String?
   photoOriginalMime String?
@@ -87,8 +88,8 @@ model Item {
 }
 
 model Tag {
-  id      String       @id @default(cuid())
-  name    String       @unique
+  id      String      @id @default(cuid())
+  name    String      @unique
   items   ItemTag[]
   outfits OutfitTag[]
 
@@ -98,8 +99,8 @@ model Tag {
 model ItemTag {
   itemId String
   tagId  String
-  item   Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([itemId, tagId])
   @@index([tagId])
@@ -118,8 +119,8 @@ model Color {
 model ItemColor {
   itemId  String
   colorId String
-  item    Item  @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  color   Color @relation(fields: [colorId], references: [id], onDelete: Restrict)
+  item    Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  color   Color  @relation(fields: [colorId], references: [id], onDelete: Restrict)
 
   @@id([itemId, colorId])
   @@index([colorId])

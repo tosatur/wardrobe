@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -25,7 +25,9 @@ import { DatePicker } from "@/components/date-picker";
 import { BrandPicker } from "@/components/brand-picker";
 import { ColorPicker } from "@/components/color-picker";
 import { MaterialPicker } from "@/components/material-picker";
+import { CurrencySelect } from "@/components/currency-select";
 import { createItem, updateItem, uploadItemPhoto, type ItemPayload } from "@/lib/items-client";
+import { getSession } from "@/lib/auth-client";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 type ItemFormValues = {
@@ -35,6 +37,7 @@ type ItemFormValues = {
   size: string;
   purchaseDate: string;
   price: string;
+  currency: string;
   notes: string;
   visibility: ItemVisibility;
   colorIds: string[];
@@ -50,6 +53,7 @@ function toFormValues(item?: ItemDto): ItemFormValues {
     size: item?.size ?? "",
     purchaseDate: item?.purchaseDate?.slice(0, 10) ?? "",
     price: item?.price != null ? String(item.price) : "",
+    currency: item?.currency ?? "USD",
     notes: item?.notes ?? "",
     visibility: item?.visibility ?? "private",
     colorIds: item?.colors.map((c) => c.id) ?? [],
@@ -66,6 +70,7 @@ function toPayload(values: ItemFormValues): ItemPayload {
     size: values.size || undefined,
     purchaseDate: values.purchaseDate || undefined,
     price: values.price ? Number(values.price) : undefined,
+    currency: values.currency,
     notes: values.notes || undefined,
     visibility: values.visibility,
     colorIds: values.colorIds,
@@ -94,6 +99,16 @@ export function ItemForm({ item }: { item?: ItemDto }) {
   const tags = useWatch({ control, name: "tags" });
   const visibility = useWatch({ control, name: "visibility" });
   const purchaseDate = useWatch({ control, name: "purchaseDate" });
+  const currency = useWatch({ control, name: "currency" });
+
+  // New items default to "USD" until the user's own preference loads;
+  // doesn't apply in edit mode, where the item's saved currency already won.
+  useEffect(() => {
+    if (mode !== "create") return;
+    void getSession().then((session) => {
+      if (session) setValue("currency", session.user.defaultCurrency);
+    });
+  }, [mode, setValue]);
 
   // Staged locally during creation, there's no item id to upload against
   // until the item itself exists, so the file is held here and uploaded
@@ -281,7 +296,19 @@ export function ItemForm({ item }: { item?: ItemDto }) {
               </Field>
               <Field>
                 <FieldLabel htmlFor="price">Price</FieldLabel>
-                <Input id="price" type="number" step="0.01" min="0" {...register("price")} />
+                <div className="flex gap-2">
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="flex-1"
+                    {...register("price")}
+                  />
+                  <div className="w-28 shrink-0">
+                    <CurrencySelect value={currency} onChange={(next) => setValue("currency", next)} />
+                  </div>
+                </div>
                 {errors.price && <FieldError>{errors.price.message}</FieldError>}
               </Field>
             </div>

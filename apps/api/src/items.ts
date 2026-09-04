@@ -57,6 +57,7 @@ export function toItemDto(item: ItemWithRelations, stats: ItemStatsDto | null = 
     size: item.size,
     purchaseDate: item.purchaseDate ? item.purchaseDate.toISOString() : null,
     price: item.price === null ? null : Number(item.price),
+    currency: item.currency,
     notes: item.notes,
     photoUrl: item.photoOriginalKey ? `/items/${item.id}/photo/original` : null,
     photoCutoutUrl: item.photoCutoutKey ? `/items/${item.id}/photo/cutout` : null,

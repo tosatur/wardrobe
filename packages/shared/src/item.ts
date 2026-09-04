@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CurrencyCodeSchema } from "./currency.js";
 
 export const ItemVisibilitySchema = z.enum(["private", "public"]);
 export type ItemVisibility = z.infer<typeof ItemVisibilitySchema>;
@@ -20,6 +21,7 @@ const itemFields = {
   size: z.string().trim().min(1).max(50).optional(),
   purchaseDate: z.coerce.date().optional(),
   price: z.number().nonnegative().max(1_000_000).optional(),
+  currency: CurrencyCodeSchema.optional(),
   notes: z.string().trim().max(2000).optional(),
   visibility: ItemVisibilitySchema,
   tags: z.array(tagNameSchema).max(20),
@@ -28,6 +30,7 @@ const itemFields = {
 export const ItemCreateSchema = z.object(itemFields).extend({
   colorIds: itemFields.colorIds.default([]),
   materialIds: itemFields.materialIds.default([]),
+  currency: itemFields.currency.default("USD"),
   visibility: itemFields.visibility.default("private"),
   tags: itemFields.tags.default([]),
 });
@@ -70,6 +73,7 @@ export const ItemDtoSchema = z.object({
   size: z.string().nullable(),
   purchaseDate: z.string().nullable(),
   price: z.number().nullable(),
+  currency: z.string(),
   notes: z.string().nullable(),
   photoUrl: z.string().nullable(),
   photoCutoutUrl: z.string().nullable(),

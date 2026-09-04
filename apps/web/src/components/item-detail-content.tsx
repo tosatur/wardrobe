@@ -13,6 +13,7 @@ import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { API_URL } from "@/lib/auth-client";
 import { getItem } from "@/lib/items-client";
 import { EmptyState } from "@/components/empty-state";
+import { currencySymbol } from "@wardrobe/shared";
 
 export function ItemDetailContent({ id }: { id: string }) {
   const router = useRouter();
@@ -50,7 +51,7 @@ export function ItemDetailContent({ id }: { id: string }) {
   const details: [string, string | number | null][] = [
     ["Brand", item.brand?.name ?? null],
     ["Size", item.size],
-    ["Price", item.price != null ? `$${item.price.toFixed(2)}` : null],
+    ["Price", item.price != null ? `${currencySymbol(item.currency)}${item.price.toFixed(2)}` : null],
     ["Purchase date", item.purchaseDate?.slice(0, 10) ?? null],
     ["Visibility", item.visibility],
   ];
@@ -145,7 +146,7 @@ export function ItemDetailContent({ id }: { id: string }) {
                 {stats.costPerWear != null && (
                   <div>
                     <dt className="text-muted-foreground">Cost per wear</dt>
-                    <dd>${stats.costPerWear.toFixed(2)}</dd>
+                    <dd>{currencySymbol(item.currency)}{stats.costPerWear.toFixed(2)}</dd>
                   </div>
                 )}
               </dl>
