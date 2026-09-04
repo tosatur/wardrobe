@@ -1,0 +1,26 @@
+{
+  "name": "@wardrobe/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --exclude \"**/dist/**\" --passWithNoTests"
+  },
+  "dependencies": {
+    "@fastify/cors": "11.3.0",
+    "@fastify/multipart": "10.1.1",
+    "@node-rs/argon2": "2.2.0",
+    "@wardrobe/db": "workspace:*",
+    "@wardrobe/shared": "workspace:*",
+    "@wardrobe/storage": "workspace:*",
+    "better-auth": "1.7.2",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.2.0",
+    "tsx": "^4.19.2"
+  }
+}

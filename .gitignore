@@ -1,0 +1,52 @@
+# Planning notes, not part of the repo
+PLANNING.md
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build output
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Prisma (generated client + local dev DB; migrations and schema.prisma stay tracked)
+packages/db/src/generated/
+packages/db/prisma/dev.db
+packages/db/prisma/dev.db-journal
+
+# Local file storage (uploaded photos in non-Docker dev)
+apps/api/.data/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# Docker
+docker-compose.override.yml
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

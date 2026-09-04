@@ -1,0 +1,273 @@
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  member
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  role          Role      @default(member)
+  createdAt     DateTime  @default(now())
+  emailVerified Boolean   @default(false)
+  image         String?
+  locationName  String?
+  locationLat   Float?
+  locationLon   Float?
+  avatarKey     String?
+  avatarMime    String?
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  items   Item[]
+  outfits Outfit[]
+
+  @@map("user")
+}
+
+enum ItemVisibility {
+  private
+  public
+}
+
+enum PhotoStatus {
+  none
+  processing
+  ready
+  failed
+}
+
+model Item {
+  id                String         @id @default(cuid())
+  ownerId           String
+  owner             User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  nickname          String?
+  categoryId        String
+  category          Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brandId           String?
+  brand             Brand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  size              String?
+  purchaseDate      DateTime?
+  price             Decimal?       @db.Decimal(10, 2)
+  notes             String?
+  photoOriginalKey  String?
+  photoOriginalMime String?
+  photoCutoutKey    String?
+  photoThumbnailKey String?
+  photoStatus       PhotoStatus    @default(none)
+  visibility        ItemVisibility @default(private)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  tags              ItemTag[]
+  colors            ItemColor[]
+  materials         ItemMaterial[]
+  outfitItems       OutfitItem[]
+
+  @@index([ownerId])
+  @@index([categoryId])
+  @@index([brandId])
+  @@map("item")
+}
+
+model Tag {
+  id      String       @id @default(cuid())
+  name    String       @unique
+  items   ItemTag[]
+  outfits OutfitTag[]
+
+  @@map("tag")
+}
+
+model ItemTag {
+  itemId String
+  tagId  String
+  item   Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, tagId])
+  @@index([tagId])
+  @@map("item_tag")
+}
+
+model Color {
+  id    String      @id @default(cuid())
+  name  String      @unique
+  hex   String
+  items ItemColor[]
+
+  @@map("color")
+}
+
+model ItemColor {
+  itemId  String
+  colorId String
+  item    Item  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  color   Color @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@id([itemId, colorId])
+  @@index([colorId])
+  @@map("item_color")
+}
+
+model Material {
+  id    String         @id @default(cuid())
+  name  String         @unique
+  items ItemMaterial[]
+
+  @@map("material")
+}
+
+model ItemMaterial {
+  itemId     String
+  materialId String
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@id([itemId, materialId])
+  @@index([materialId])
+  @@map("item_material")
+}
+
+model Brand {
+  id    String @id @default(cuid())
+  name  String @unique
+  items Item[]
+
+  @@map("brand")
+}
+
+model Category {
+  id       String     @id @default(cuid())
+  name     String
+  parentId String?
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryChildren")
+  items    Item[]
+
+  @@unique([parentId, name])
+  @@index([parentId])
+  @@map("category")
+}
+
+model Outfit {
+  id            String       @id @default(cuid())
+  ownerId       String
+  owner         User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  coverPhotoUrl String?
+  rating        Float?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  items         OutfitItem[]
+  tags          OutfitTag[]
+  wears         OutfitWear[]
+
+  @@index([ownerId])
+  @@map("outfit")
+}
+
+model OutfitItem {
+  outfitId String
+  itemId   String
+  outfit   Outfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  item     Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  x        Float
+  y        Float
+  zIndex   Int
+
+  @@id([outfitId, itemId])
+  @@index([itemId])
+  @@map("outfit_item")
+}
+
+model OutfitTag {
+  outfitId String
+  tagId    String
+  outfit   Outfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([outfitId, tagId])
+  @@index([tagId])
+  @@map("outfit_tag")
+}
+
+model OutfitWear {
+  id        String   @id @default(cuid())
+  outfitId  String
+  outfit    Outfit   @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  wornDate  DateTime
+  createdAt DateTime @default(now())
+
+  @@index([outfitId])
+  @@map("outfit_wear")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  issuer                String
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([issuer, accountId], map: "account_issuer_accountId_uidx")
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}

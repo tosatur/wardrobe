@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-heading);
+    --font-sans: var(--font-sans);
+    --font-mono: var(--font-mono);
+    --color-navy: var(--navy);
+    --color-navy-light: var(--navy-light);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* SKN/DRP-only: stark near-white ground, near-black ink, ONE deep-navy
+       accent (the reference's dark panel color) rather than a bright duo.
+       Low-contrast, monochrome-first. Color is used sparingly, not spread
+       across every control. */
+    --navy: #1e2a52;
+    --navy-light: #33448a;
+    --background: #fafaf8;
+    --foreground: #0e0e0c;
+    --card: #ffffff;
+    --card-foreground: #0e0e0c;
+    --popover: #ffffff;
+    --popover-foreground: #0e0e0c;
+    --primary: var(--navy);
+    --primary-foreground: #fafaf8;
+    --secondary: #efefea;
+    --secondary-foreground: #0e0e0c;
+    --muted: #f0f0eb;
+    --muted-foreground: #75756f;
+    --accent: #f0f0eb;
+    --accent-foreground: #0e0e0c;
+    --destructive: #b23b30;
+    --border: #dddbd3;
+    --input: #dddbd3;
+    --ring: var(--navy);
+    --chart-1: var(--navy);
+    --chart-2: #75756f;
+    --chart-3: #0e0e0c;
+    --chart-4: #b23b30;
+    --chart-5: #a8a69d;
+    --radius: 0.125rem;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0e0e0c;
+    --sidebar-primary: var(--navy);
+    --sidebar-primary-foreground: #fafaf8;
+    --sidebar-accent: #f0f0eb;
+    --sidebar-accent-foreground: #0e0e0c;
+    --sidebar-border: #dddbd3;
+    --sidebar-ring: var(--navy);
+}
+
+.dark {
+    /* Neutral graphite, not navy-black. The reference's own dark panels are
+       true near-neutral charcoal; navy shows up there only as a small,
+       deliberate accent (buttons, links, focus), never smeared across the
+       ambient surface. The previous background/card/muted/border set (e.g.
+       #0a0d16, #171b2a, #242a3d) all carried blue meaningfully higher than
+       red/green, which read as "the whole UI is blue" rather than "navy is
+       the accent." Every surface token below is R=G=B (true neutral); only
+       --navy/--navy-light stay a color. */
+    --navy: #5972e0;
+    --navy-light: #7f92ee;
+    --background: #121212;
+    --foreground: #f2f1ea;
+    --card: #1a1a1a;
+    --card-foreground: #f2f1ea;
+    --popover: #1a1a1a;
+    --popover-foreground: #f2f1ea;
+    --primary: var(--navy);
+    --primary-foreground: #f7f7f5;
+    --secondary: #1e1e1e;
+    --secondary-foreground: #f2f1ea;
+    --muted: #202020;
+    --muted-foreground: #9c9c96;
+    --accent: #202020;
+    --accent-foreground: #f2f1ea;
+    --destructive: #d8695c;
+    --border: #2e2e2e;
+    --input: #2e2e2e;
+    --ring: var(--navy);
+    --chart-1: var(--navy);
+    --chart-2: #9c9c96;
+    --chart-3: #f2f1ea;
+    --chart-4: #d8695c;
+    --chart-5: #4a4a46;
+    --sidebar: #1a1a1a;
+    --sidebar-foreground: #f2f1ea;
+    --sidebar-primary: var(--navy);
+    --sidebar-primary-foreground: #f7f7f5;
+    --sidebar-accent: #202020;
+    --sidebar-accent-foreground: #f2f1ea;
+    --sidebar-border: #2e2e2e;
+    --sidebar-ring: var(--navy);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+
+@layer utilities {
+  /* A frosted glass surface, translucent + blurred, with a hairline edge
+     rather than a solid card border. Sharp corners (the app's own --radius)
+     keep this from reading as the generic rounded-glassmorphism default. */
+  .glass {
+    @apply border border-foreground/10 bg-background/55 backdrop-blur-lg;
+  }
+
+  /* The industrial/spec-sheet signature: a faint schematic grid, echoing the
+     reference's "structural grid behind the media", never a graphic on its
+     own, always a quiet backdrop for real content. currentColor + very low
+     alpha so it stays correct in both themes without separate light/dark
+     rules. */
+  .schematic-grid {
+    background-image:
+      repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, currentColor 0 1px, transparent 1px 64px);
+    background-position: -1px -1px;
+    color: var(--color-foreground);
+    opacity: 0.05;
+  }
+}

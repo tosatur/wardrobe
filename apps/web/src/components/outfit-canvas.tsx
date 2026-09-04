@@ -1,0 +1,80 @@
+"use client";
+
+import { useDroppable } from "@dnd-kit/core";
+import type { OutfitItemDto } from "@wardrobe/shared";
+import { API_URL } from "@/lib/auth-client";
+import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
+import { CanvasItem } from "@/components/canvas-item";
+
+const FRAME_CLASS =
+  "relative aspect-square w-full overflow-hidden border-2 border-foreground/60 bg-foreground/10 shadow-lg";
+const TILE_CLASS = "absolute w-1/3 -translate-x-1/2 -translate-y-1/2";
+
+function StaticTile({
+  x,
+  y,
+  zIndex,
+  photoCutoutUrl,
+  label,
+}: {
+  x: number;
+  y: number;
+  zIndex: number;
+  photoCutoutUrl: string | null;
+  label: string;
+}) {
+  if (!photoCutoutUrl) return null;
+
+  return (
+    <div className={TILE_CLASS} style={{ left: `${x}%`, top: `${y}%`, zIndex }}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image */}
+      <img
+        src={`${API_URL}${photoCutoutUrl}`}
+        crossOrigin="use-credentials"
+        alt={label}
+        className="pointer-events-none w-full drop-shadow-md"
+      />
+    </div>
+  );
+}
+
+export function OutfitCanvas({
+  readOnly,
+  items,
+}: {
+  readOnly?: boolean;
+  items?: OutfitItemDto[];
+}) {
+  const placements = useOutfitCanvasStore((s) => s.placements);
+  const { setNodeRef } = useDroppable({ id: "outfit-canvas", disabled: readOnly });
+
+  if (readOnly) {
+    return (
+      <div className={FRAME_CLASS}>
+        {(items ?? []).map((oi) => (
+          <StaticTile
+            key={oi.itemId}
+            x={oi.x}
+            y={oi.y}
+            zIndex={oi.zIndex}
+            photoCutoutUrl={oi.item.photoCutoutUrl}
+            label={oi.item.nickname ?? oi.item.categoryName}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div ref={setNodeRef} className={FRAME_CLASS}>
+      {placements.length === 0 && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
+          Drag items here
+        </div>
+      )}
+      {placements.map((p) => (
+        <CanvasItem key={p.itemId} placement={p} />
+      ))}
+    </div>
+  );
+}
