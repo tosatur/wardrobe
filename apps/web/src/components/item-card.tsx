@@ -1,28 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import { EllipsisVertical } from "lucide-react";
 import type { ItemDto } from "@wardrobe/shared";
 import { API_URL } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DeleteItemDialog } from "@/components/delete-item-dialog";
+import { ItemCardMenu } from "@/components/item-card-menu";
+import { cn } from "@/lib/utils";
 
 export function ItemCard({
   item,
   onHoverChange,
+  variant = "masonry",
 }: {
   item: ItemDto;
   onHoverChange?: (el: HTMLElement | null) => void;
+  /** "masonry" flows at the photo's natural aspect ratio in a CSS-columns
+   *  layout; "grid" fits it, uncropped, into a uniform square cell. */
+  variant?: "masonry" | "grid";
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
     // break-inside-avoid keeps a card from splitting across the CSS-columns
@@ -32,13 +28,16 @@ export function ItemCard({
     // anchor.
     <div
       ref={ref}
-      className="group relative mb-4 break-inside-avoid"
+      className={cn(
+        "group relative",
+        variant === "masonry" ? "mb-4 break-inside-avoid" : "aspect-3/4 overflow-hidden bg-muted",
+      )}
       onMouseEnter={() => onHoverChange?.(ref.current)}
       onMouseLeave={() => onHoverChange?.(null)}
     >
       <Link
         href={`/items/${item.id}`}
-        className="block"
+        className={cn("block", variant === "grid" && "size-full")}
         onFocus={(e) => {
           // Closing the kebab dropdown or a route modal hands DOM focus
           // back to this link even when the interaction that closed it was
@@ -55,10 +54,17 @@ export function ItemCard({
             src={`${API_URL}${item.photoCutoutUrl ?? item.photoUrl}`}
             crossOrigin="use-credentials"
             alt={item.nickname || item.category.name}
-            className="mx-auto block h-auto w-4/5"
+            className={cn(
+              variant === "masonry" ? "mx-auto block h-auto w-4/5" : "size-full object-contain p-4",
+            )}
           />
         ) : (
-          <div className="flex aspect-3/4 w-full items-center justify-center bg-muted font-mono text-xs tracking-wide text-muted-foreground uppercase">
+          <div
+            className={cn(
+              "flex items-center justify-center bg-muted font-mono text-xs tracking-wide text-muted-foreground uppercase",
+              variant === "masonry" ? "aspect-3/4 w-full" : "size-full",
+            )}
+          >
             No photo
           </div>
         )}
@@ -80,39 +86,10 @@ export function ItemCard({
         </div>
       </Link>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="outline"
-              size="icon-xs"
-              className="absolute right-2 bottom-2 rounded-full bg-background/80 opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100 data-popup-open:opacity-100"
-              aria-label="Item actions"
-            />
-          }
-        >
-          <EllipsisVertical />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem render={<Link href={`/items/${item.id}`} />}>View</DropdownMenuItem>
-          <DropdownMenuItem render={<Link href={`/items/${item.id}/edit`} />}>Edit</DropdownMenuItem>
-          {item.photoStatus === "ready" && (
-            // A forced hard navigation, not Link: see the comment on the
-            // "+ Add outfit" button in outfits/page.tsx for why.
-            <DropdownMenuItem
-              // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
-              onClick={() => (window.location.href = `/outfits/new?itemId=${item.id}`)}
-            >
-              Use in new outfit
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <DeleteItemDialog itemId={item.id} open={deleteOpen} onOpenChange={setDeleteOpen} />
+      <ItemCardMenu
+        item={item}
+        triggerClassName="absolute right-2 bottom-2 bg-background/80 opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100 data-popup-open:opacity-100"
+      />
     </div>
   );
 }

@@ -17,9 +17,16 @@ import {
 import { Combobox } from "@/components/combobox";
 import { CategoryPicker } from "@/components/category-picker";
 import { ItemCard } from "@/components/item-card";
+import { ItemListRow } from "@/components/item-list-row";
+import { ViewToggle, type ViewMode } from "@/components/view-toggle";
 import { HoverReticle, type Rect } from "@/components/hover-reticle";
 import { EmptyState } from "@/components/empty-state";
 import { listBrands, listItems, listTags } from "@/lib/items-client";
+import { cn } from "@/lib/utils";
+
+function isViewMode(value: string | null): value is ViewMode {
+  return value === "masonry" || value === "grid" || value === "list";
+}
 
 function rectOf(el: HTMLElement): Rect {
   const { top, left, width, height } = el.getBoundingClientRect();
@@ -42,6 +49,8 @@ function ItemsPageContent() {
   const categoryId = searchParams.get("categoryId") ?? "";
   const brandId = searchParams.get("brandId") ?? "";
   const tag = searchParams.get("tag") ?? "";
+  const rawView = searchParams.get("view");
+  const view: ViewMode = isViewMode(rawView) ? rawView : "masonry";
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -114,7 +123,10 @@ function ItemsPageContent() {
           <h1 className="font-heading text-3xl font-black tracking-tight uppercase">
             Your closet
           </h1>
-          <Button render={<Link href="/items/new" />}>+ Add item</Button>
+          <div className="flex items-center gap-2">
+            <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
+            <Button render={<Link href="/items/new" />}>+ Add item</Button>
+          </div>
         </div>
       </div>
 
@@ -152,13 +164,28 @@ function ItemsPageContent() {
         </Select>
       </div>
 
-      {/* CSS multi-column masonry. No library needed. Cards flow down each
-          column and wrap, sized to their own photo's aspect ratio rather
-          than a shared row height. */}
-      {isPending && (
-        <div className="columns-2 gap-4 sm:columns-3 md:columns-4">
+      {isPending && view === "list" && (
+        <div className="glass divide-y divide-border p-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="my-2 h-12 w-full" />
+          ))}
+        </div>
+      )}
+      {isPending && view !== "list" && (
+        // CSS multi-column masonry for the masonry skeleton too - grid uses
+        // an actual grid, since its cells are uniform.
+        <div
+          className={cn(
+            view === "masonry"
+              ? "columns-2 gap-4 sm:columns-3 md:columns-4"
+              : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4",
+          )}
+        >
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="mb-4 aspect-3/4 w-full break-inside-avoid" />
+            <Skeleton
+              key={i}
+              className={cn("aspect-3/4 w-full", view === "masonry" && "mb-4 break-inside-avoid")}
+            />
           ))}
         </div>
       )}
@@ -167,10 +194,28 @@ function ItemsPageContent() {
         <EmptyState>No items match your filters.</EmptyState>
       )}
 
-      {!isPending && items && items.length > 0 && (
-        <div className="columns-2 gap-4 sm:columns-3 md:columns-4">
+      {!isPending && items && items.length > 0 && view === "list" && (
+        <div className="glass p-3">
           {items.map((item) => (
-            <ItemCard key={item.id} item={item} onHoverChange={handleHoverChange} />
+            <ItemListRow key={item.id} item={item} />
+          ))}
+        </div>
+      )}
+
+      {/* CSS multi-column masonry for "masonry": cards flow down each
+          column and wrap, sized to their own photo's aspect ratio rather
+          than a shared row height. A real grid for "grid": every cell the
+          same size. */}
+      {!isPending && items && items.length > 0 && view !== "list" && (
+        <div
+          className={cn(
+            view === "masonry"
+              ? "columns-2 gap-4 sm:columns-3 md:columns-4"
+              : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4",
+          )}
+        >
+          {items.map((item) => (
+            <ItemCard key={item.id} item={item} onHoverChange={handleHoverChange} variant={view} />
           ))}
         </div>
       )}
