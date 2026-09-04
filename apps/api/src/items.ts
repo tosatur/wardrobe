@@ -29,6 +29,26 @@ function categoryPath(category: { name: string; parent: { name: string } | null 
   return category.parent ? `${category.parent.name}/${category.name}` : category.name;
 }
 
+// Category trees can nest arbitrarily deep, so filtering "this category"
+// has to mean "this category or any of its descendants", not just its
+// direct children.
+async function categoryAndDescendantIds(
+  tx: Prisma.TransactionClient | typeof prisma,
+  categoryId: string,
+): Promise<string[]> {
+  const all = await tx.category.findMany({ select: { id: true, parentId: true } });
+  const childrenOf = new Map<string, string[]>();
+  for (const c of all) {
+    if (!c.parentId) continue;
+    childrenOf.set(c.parentId, [...(childrenOf.get(c.parentId) ?? []), c.id]);
+  }
+  const ids = [categoryId];
+  for (let i = 0; i < ids.length; i++) {
+    ids.push(...(childrenOf.get(ids[i]) ?? []));
+  }
+  return ids;
+}
+
 export function computeItemStats(wornDates: Date[], price: number | null): ItemStatsDto {
   const timesWorn = wornDates.length;
   const lastWornDate =
@@ -165,7 +185,8 @@ export async function itemRoutes(app: FastifyInstance) {
       { status: status ?? "active" },
     ];
     if (categoryId) {
-      conditions.push({ OR: [{ categoryId }, { category: { parentId: categoryId } }] });
+      const ids = await categoryAndDescendantIds(prisma, categoryId);
+      conditions.push({ categoryId: { in: ids } });
     }
     if (colorId) conditions.push({ colors: { some: { colorId } } });
     if (brandId) conditions.push({ brandId });
@@ -451,16 +472,24 @@ export async function itemRoutes(app: FastifyInstance) {
     if (!session) return;
 
     const categories = await prisma.category.findMany({
-      include: { parent: true },
       orderBy: [{ parentId: "asc" }, { name: "asc" }],
     });
+    // The category tree can nest arbitrarily deep, so build each one's full
+    // ancestor chain from the flat list already in hand rather than a
+    // recursive query - one round trip regardless of depth.
+    const byId = new Map(categories.map((c) => [c.id, c]));
+    function fullPath(category: (typeof categories)[number]): string {
+      const parent = category.parentId ? byId.get(category.parentId) : undefined;
+      return parent ? `${fullPath(parent)}/${category.name}` : category.name;
+    }
+
     return reply.send(
       categories.map((c) => ({
         id: c.id,
         name: c.name,
         parentId: c.parentId,
-        parentName: c.parent?.name ?? null,
-        path: categoryPath(c),
+        parentName: c.parentId ? (byId.get(c.parentId)?.name ?? null) : null,
+        path: fullPath(c),
       })),
     );
   });

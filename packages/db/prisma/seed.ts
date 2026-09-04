@@ -68,6 +68,13 @@ const categories: Record<string, string[]> = {
   Suits: ["Two-piece", "Three-piece", "Waistcoat"],
 };
 
+// A few categories nest a third level, to demonstrate the category picker
+// isn't limited to the usual parent/child depth.
+const grandchildCategories: Record<string, string[]> = {
+  Jeans: ["Skinny", "Straight", "Bootcut", "Wide-leg"],
+  Sneakers: ["Low-top", "High-top"],
+};
+
 const brands: string[] = [
   "Nike",
   "Adidas",
@@ -132,12 +139,21 @@ async function main() {
     categoryCount += 1;
 
     for (const childName of children) {
-      await prisma.category.upsert({
+      const child = await prisma.category.upsert({
         where: { parentId_name: { parentId: parent.id, name: childName } },
         create: { name: childName, parentId: parent.id },
         update: {},
       });
       categoryCount += 1;
+
+      for (const grandchildName of grandchildCategories[childName] ?? []) {
+        await prisma.category.upsert({
+          where: { parentId_name: { parentId: child.id, name: grandchildName } },
+          create: { name: grandchildName, parentId: child.id },
+          update: {},
+        });
+        categoryCount += 1;
+      }
     }
   }
   console.log(`Seeded ${categoryCount} categories.`);
