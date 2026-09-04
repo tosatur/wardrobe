@@ -35,13 +35,14 @@ function addMonths(date: Date, n: number) {
 
 const MAX_VISIBLE_WEARS = 3;
 
-// A single outfit fills most of the cell; from two onward, tiles are sized
-// so only two fit per row, which makes the flex-wrap below arrange them on
-// its own: 2 wears sit side by side, 3 fall into a 2-over-1 triangle, and 4
-// (three outfits plus the overflow badge as the fourth tile) form a 2x2
-// square — no manual row-by-row layout needed.
-function wearTileWidthClass(count: number) {
-  return count <= 1 ? "w-[74%]" : "w-[45%]";
+// From two outfits onward, tiles sit in a fixed 2-column grid so the
+// arrangement is deterministic rather than depending on flex-wrap fitting
+// math: 2 wears fill one row, 3 wrap the third into a row of its own
+// (centered under the gap above via col-span), and 4 (three outfits plus
+// the overflow badge as the fourth tile) fill both rows as a 2x2 square.
+// Two-up stays noticeably larger than the three-or-more density tier.
+function wearTileColumnWidthClass(count: number) {
+  return count === 2 ? "w-[90%]" : "w-[60%]";
 }
 
 export default function CalendarPage() {
@@ -186,29 +187,49 @@ function CalendarPageContent() {
                   </span>
                   <DayWeather weather={weatherByDay.get(key)} />
                 </div>
-                <div className="relative flex flex-1 flex-wrap content-center items-center justify-center gap-1">
-                  {dayWears.slice(0, MAX_VISIBLE_WEARS).map((wear) => (
+                <div className="relative flex flex-1 items-center justify-center">
+                  {dayWears.length === 1 && (
                     <Link
-                      key={wear.id}
-                      href={`/outfits/${wear.outfit.id}`}
-                      title={wear.outfit.name}
-                      className={cn(
-                        "block aspect-square shrink-0 overflow-hidden rounded-sm",
-                        wearTileWidthClass(dayWears.length),
-                      )}
+                      href={`/outfits/${dayWears[0].outfit.id}`}
+                      title={dayWears[0].outfit.name}
+                      className="block aspect-square w-[74%] overflow-hidden rounded-sm"
                     >
-                      <OutfitCanvas readOnly items={wear.outfit.items} />
+                      <OutfitCanvas readOnly items={dayWears[0].outfit.items} />
                     </Link>
-                  ))}
-                  {dayWears.length > MAX_VISIBLE_WEARS && (
-                    <span
-                      className={cn(
-                        "flex aspect-square shrink-0 items-center justify-center rounded-sm border border-border bg-muted text-xs font-medium text-muted-foreground",
-                        wearTileWidthClass(dayWears.length),
+                  )}
+                  {dayWears.length > 1 && (
+                    <div className="grid w-full grid-cols-2 gap-1">
+                      {dayWears.slice(0, MAX_VISIBLE_WEARS).map((wear, i) => {
+                        // The triangle's apex (the 3rd tile when there's no
+                        // 4th) spans both columns so it centers under the
+                        // gap between the two tiles above it, rather than
+                        // sitting left-aligned under the first column.
+                        const isApex = dayWears.length === 3 && i === 2;
+                        return (
+                          <Link
+                            key={wear.id}
+                            href={`/outfits/${wear.outfit.id}`}
+                            title={wear.outfit.name}
+                            className={cn(
+                              "mx-auto block aspect-square overflow-hidden rounded-sm",
+                              isApex ? "col-span-2 w-[30%]" : wearTileColumnWidthClass(dayWears.length),
+                            )}
+                          >
+                            <OutfitCanvas readOnly items={wear.outfit.items} />
+                          </Link>
+                        );
+                      })}
+                      {dayWears.length > MAX_VISIBLE_WEARS && (
+                        <span
+                          className={cn(
+                            "mx-auto flex aspect-square items-center justify-center rounded-sm border border-border bg-muted text-xs font-medium text-muted-foreground",
+                            wearTileColumnWidthClass(dayWears.length),
+                          )}
+                        >
+                          +{dayWears.length - MAX_VISIBLE_WEARS}
+                        </span>
                       )}
-                    >
-                      +{dayWears.length - MAX_VISIBLE_WEARS}
-                    </span>
+                    </div>
                   )}
                 </div>
               </div>
