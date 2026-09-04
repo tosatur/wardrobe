@@ -150,7 +150,14 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
       rating: values.rating,
       tags: values.tags,
       wornDates: values.wornDates,
-      items: placements.map((p) => ({ itemId: p.itemId, x: p.x, y: p.y, zIndex: p.zIndex })),
+      items: placements.map((p) => ({
+        itemId: p.itemId,
+        x: p.x,
+        y: p.y,
+        zIndex: p.zIndex,
+        scale: p.scale,
+        rotation: p.rotation,
+      })),
     };
     const schema = mode === "create" ? OutfitCreateSchema : OutfitUpdateSchema;
     const parsed = schema.safeParse(payload);

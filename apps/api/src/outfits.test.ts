@@ -58,6 +58,8 @@ function makeOutfit(overrides: Partial<Record<string, unknown>> = {}) {
       x: number;
       y: number;
       zIndex: number;
+      scale: number;
+      rotation: number;
       item: {
         id: string;
         nickname: string | null;
@@ -85,6 +87,8 @@ describe("toOutfitDto", () => {
           x: 25,
           y: 40,
           zIndex: 1,
+          scale: 1,
+          rotation: 0,
           item: {
             id: "item-1",
             nickname: "Denim jacket",
@@ -106,6 +110,8 @@ describe("toOutfitDto", () => {
         x: 25,
         y: 40,
         zIndex: 1,
+        scale: 1,
+        rotation: 0,
         item: {
           id: "item-1",
           nickname: "Denim jacket",
@@ -127,6 +133,8 @@ describe("toOutfitDto", () => {
           x: 0,
           y: 0,
           zIndex: 1,
+          scale: 1,
+          rotation: 0,
           item: {
             id: "item-1",
             nickname: null,
@@ -173,7 +181,9 @@ describe("POST /outfits", () => {
         data: expect.objectContaining({
           name: "Weekend look",
           ownerId: "user-1",
-          items: { create: [{ itemId: "item-1", x: 25, y: 40, zIndex: 1 }] },
+          items: {
+            create: [{ itemId: "item-1", x: 25, y: 40, zIndex: 1, scale: 1, rotation: 0 }],
+          },
         }),
       }),
     );

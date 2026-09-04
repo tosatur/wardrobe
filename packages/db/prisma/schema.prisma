@@ -220,6 +220,8 @@ model OutfitItem {
   x        Float
   y        Float
   zIndex   Int
+  scale    Float  @default(1)
+  rotation Float  @default(0)
 
   @@id([outfitId, itemId])
   @@index([itemId])

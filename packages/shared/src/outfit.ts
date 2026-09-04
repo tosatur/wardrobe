@@ -5,6 +5,8 @@ export const OutfitItemPlacementSchema = z.object({
   x: z.number().min(0).max(100),
   y: z.number().min(0).max(100),
   zIndex: z.number().int().nonnegative(),
+  scale: z.number().min(0.25).max(3).default(1),
+  rotation: z.number().min(-180).max(180).default(0),
 });
 export type OutfitItemPlacementInput = z.infer<typeof OutfitItemPlacementSchema>;
 
@@ -42,6 +44,8 @@ export const OutfitItemDtoSchema = z.object({
   x: z.number(),
   y: z.number(),
   zIndex: z.number(),
+  scale: z.number(),
+  rotation: z.number(),
   item: z.object({
     id: z.string(),
     nickname: z.string().nullable(),

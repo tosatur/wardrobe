@@ -32,6 +32,8 @@ export function toOutfitItemDto(oi: OutfitItemWithItem): OutfitItemDto {
     x: oi.x,
     y: oi.y,
     zIndex: oi.zIndex,
+    scale: oi.scale,
+    rotation: oi.rotation,
     item: {
       id: oi.item.id,
       nickname: oi.item.nickname,
@@ -117,7 +119,14 @@ export async function outfitRoutes(app: FastifyInstance) {
             ...data,
             ownerId: session.user.id,
             items: {
-              create: placements.map((p) => ({ itemId: p.itemId, x: p.x, y: p.y, zIndex: p.zIndex })),
+              create: placements.map((p) => ({
+                itemId: p.itemId,
+                x: p.x,
+                y: p.y,
+                zIndex: p.zIndex,
+                scale: p.scale,
+                rotation: p.rotation,
+              })),
             },
             tags: { create: tags.map((tag) => ({ tagId: tag.id })) },
             wears: { create: wornDates.map((wornDate) => ({ wornDate })) },
@@ -197,7 +206,14 @@ export async function outfitRoutes(app: FastifyInstance) {
             where: { id: existing.id },
             data: {
               items: {
-                create: placements.map((p) => ({ itemId: p.itemId, x: p.x, y: p.y, zIndex: p.zIndex })),
+                create: placements.map((p) => ({
+                itemId: p.itemId,
+                x: p.x,
+                y: p.y,
+                zIndex: p.zIndex,
+                scale: p.scale,
+                rotation: p.rotation,
+              })),
               },
             },
           });

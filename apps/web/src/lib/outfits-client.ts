@@ -1,7 +1,14 @@
 import type { CalendarWearDto, OutfitDto, OutfitQueryInput } from "@wardrobe/shared";
 import { authFetch } from "./auth-client";
 
-export type OutfitItemPlacementPayload = { itemId: string; x: number; y: number; zIndex: number };
+export type OutfitItemPlacementPayload = {
+  itemId: string;
+  x: number;
+  y: number;
+  zIndex: number;
+  scale: number;
+  rotation: number;
+};
 
 export type OutfitPayload = {
   name: string;

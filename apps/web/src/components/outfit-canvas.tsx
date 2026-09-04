@@ -14,12 +14,16 @@ function StaticTile({
   x,
   y,
   zIndex,
+  scale,
+  rotation,
   photoCutoutUrl,
   label,
 }: {
   x: number;
   y: number;
   zIndex: number;
+  scale: number;
+  rotation: number;
   photoCutoutUrl: string | null;
   label: string;
 }) {
@@ -27,13 +31,15 @@ function StaticTile({
 
   return (
     <div className={TILE_CLASS} style={{ left: `${x}%`, top: `${y}%`, zIndex }}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image */}
-      <img
-        src={`${API_URL}${photoCutoutUrl}`}
-        crossOrigin="use-credentials"
-        alt={label}
-        className="pointer-events-none w-full drop-shadow-md"
-      />
+      <div style={{ transform: `scale(${scale}) rotate(${rotation}deg)` }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image */}
+        <img
+          src={`${API_URL}${photoCutoutUrl}`}
+          crossOrigin="use-credentials"
+          alt={label}
+          className="pointer-events-none w-full drop-shadow-md"
+        />
+      </div>
     </div>
   );
 }
@@ -57,6 +63,8 @@ export function OutfitCanvas({
             x={oi.x}
             y={oi.y}
             zIndex={oi.zIndex}
+            scale={oi.scale}
+            rotation={oi.rotation}
             photoCutoutUrl={oi.item.photoCutoutUrl}
             label={oi.item.nickname ?? oi.item.categoryName}
           />

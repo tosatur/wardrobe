@@ -6,6 +6,8 @@ export type CanvasPlacement = {
   x: number;
   y: number;
   zIndex: number;
+  scale: number;
+  rotation: number;
   nickname: string | null;
   categoryName: string;
   photoCutoutUrl: string | null;
@@ -33,6 +35,8 @@ type OutfitCanvasStore = {
   isDirty: boolean;
   addPlacement: (item: PaletteItem, x: number, y: number) => void;
   movePlacement: (itemId: string, x: number, y: number) => void;
+  setScale: (itemId: string, scale: number) => void;
+  setRotation: (itemId: string, rotation: number) => void;
   bringToFront: (itemId: string) => void;
   removePlacement: (itemId: string) => void;
   loadPlacements: (items: OutfitItemDto[]) => void;
@@ -59,6 +63,8 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
             x,
             y,
             zIndex: state.nextZIndex,
+            scale: 1,
+            rotation: 0,
             nickname: item.nickname,
             categoryName: item.categoryName,
             photoCutoutUrl: item.photoCutoutUrl,
@@ -75,6 +81,18 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
   movePlacement: (itemId, x, y) =>
     set((state) => ({
       placements: state.placements.map((p) => (p.itemId === itemId ? { ...p, x, y } : p)),
+      isDirty: true,
+    })),
+
+  setScale: (itemId, scale) =>
+    set((state) => ({
+      placements: state.placements.map((p) => (p.itemId === itemId ? { ...p, scale } : p)),
+      isDirty: true,
+    })),
+
+  setRotation: (itemId, rotation) =>
+    set((state) => ({
+      placements: state.placements.map((p) => (p.itemId === itemId ? { ...p, rotation } : p)),
       isDirty: true,
     })),
 
@@ -99,6 +117,8 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
         x: oi.x,
         y: oi.y,
         zIndex: oi.zIndex,
+        scale: oi.scale,
+        rotation: oi.rotation,
         nickname: oi.item.nickname,
         categoryName: oi.item.categoryName,
         photoCutoutUrl: oi.item.photoCutoutUrl,
