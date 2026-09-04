@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { listWears } from "@/lib/outfits-client";
-import { OutfitCanvas } from "@/components/outfit-canvas";
+import { CalendarWearTile } from "@/components/calendar-wear-tile";
 import { DayWeather } from "@/components/day-weather";
 import { getWeather } from "@/lib/weather-client";
 import { toDateKey } from "@/lib/date";
@@ -194,13 +194,10 @@ function CalendarPageContent() {
                 </div>
                 <div className="relative flex flex-1 items-center justify-center">
                   {dayWears.length === 1 && (
-                    <Link
-                      href={`/outfits/${dayWears[0].outfit.id}`}
-                      title={dayWears[0].outfit.name}
+                    <CalendarWearTile
+                      wear={dayWears[0]}
                       className="block aspect-square w-[74%] overflow-hidden rounded-sm"
-                    >
-                      <OutfitCanvas readOnly items={dayWears[0].outfit.items} />
-                    </Link>
+                    />
                   )}
                   {dayWears.length > 1 && (
                     <div className="grid w-full grid-cols-2 gap-1">
@@ -211,17 +208,14 @@ function CalendarPageContent() {
                         // sitting left-aligned under the first column.
                         const isApex = dayWears.length === 3 && i === 2;
                         return (
-                          <Link
+                          <CalendarWearTile
                             key={wear.id}
-                            href={`/outfits/${wear.outfit.id}`}
-                            title={wear.outfit.name}
+                            wear={wear}
                             className={cn(
                               "mx-auto block aspect-square overflow-hidden rounded-sm",
                               isApex ? "col-span-2 w-[30%]" : wearTileColumnWidthClass(dayWears.length),
                             )}
-                          >
-                            <OutfitCanvas readOnly items={wear.outfit.items} />
-                          </Link>
+                          />
                         );
                       })}
                       {dayWears.length > MAX_VISIBLE_WEARS && (
