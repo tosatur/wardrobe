@@ -47,12 +47,28 @@ function StaticTile({
 export function OutfitCanvas({
   readOnly,
   items,
+  coverPhotoUrl,
 }: {
   readOnly?: boolean;
   items?: OutfitItemDto[];
+  coverPhotoUrl?: string | null;
 }) {
   const placements = useOutfitCanvasStore((s) => s.placements);
   const { setNodeRef } = useDroppable({ id: "outfit-canvas", disabled: readOnly });
+
+  if (readOnly && coverPhotoUrl) {
+    return (
+      <div className={FRAME_CLASS}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image */}
+        <img
+          src={`${API_URL}${coverPhotoUrl}`}
+          crossOrigin="use-credentials"
+          alt=""
+          className="size-full object-contain"
+        />
+      </div>
+    );
+  }
 
   if (readOnly) {
     return (

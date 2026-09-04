@@ -200,7 +200,7 @@ model Outfit {
   owner         User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   name          String
   description   String?
-  coverPhotoUrl String?
+  coverPhotoKey String?
   rating        Float?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt

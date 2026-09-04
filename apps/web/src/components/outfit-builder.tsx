@@ -34,7 +34,14 @@ import { OutfitCanvas } from "@/components/outfit-canvas";
 import { OutfitAnalysis } from "@/components/outfit-analysis";
 import { OutfitDragOverlay, type ActiveDragGhost } from "@/components/outfit-drag-overlay";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
-import { createOutfit, logWear, updateOutfit, type OutfitPayload } from "@/lib/outfits-client";
+import {
+  createOutfit,
+  logWear,
+  updateOutfit,
+  uploadOutfitCoverPhoto,
+  type OutfitPayload,
+} from "@/lib/outfits-client";
+import { composeOutfitCover } from "@/lib/outfit-cover";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 type OutfitFormValues = {
@@ -186,6 +193,16 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
       const wearResult = await logWear(result.data.id);
       if (wearResult.error) {
         toast.error(`Outfit saved, but today's wear wasn't logged: ${wearResult.error}`);
+      }
+    }
+
+    // Best-effort: a cover image makes list/grid views much cheaper than
+    // re-rendering every item's div on every card, but it's a nicety, not
+    // something that should block the save if it fails.
+    if (placements.length > 0) {
+      const cover = await composeOutfitCover(placements);
+      if (cover) {
+        await uploadOutfitCoverPhoto(result.data.id, cover);
       }
     }
 

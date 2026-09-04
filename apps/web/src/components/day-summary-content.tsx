@@ -70,7 +70,11 @@ export function DaySummaryContent({ date }: { date: string }) {
               className="flex items-center gap-3 rounded-sm p-1 transition-colors hover:bg-muted"
             >
               <div className="size-14 shrink-0 overflow-hidden rounded-sm">
-                <OutfitCanvas readOnly items={wear.outfit.items} />
+                <OutfitCanvas
+                  readOnly
+                  items={wear.outfit.items}
+                  coverPhotoUrl={wear.outfit.coverPhotoUrl}
+                />
               </div>
               <span className="text-sm font-medium">{wear.outfit.name}</span>
             </Link>

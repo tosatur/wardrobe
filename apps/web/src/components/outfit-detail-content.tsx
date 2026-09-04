@@ -76,7 +76,7 @@ export function OutfitDetailContent({ id }: { id: string }) {
 
   return (
     <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[7fr_5fr]">
-      <OutfitCanvas readOnly items={outfit.items} />
+      <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
 
       <Card className="h-fit">
         <CardHeader className="flex flex-row items-start justify-between">

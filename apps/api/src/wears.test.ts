@@ -27,7 +27,7 @@ function makeWear(overrides: Partial<Record<string, unknown>> = {}) {
     outfit: {
       id: "outfit-1",
       name: "Weekend look",
-      coverPhotoUrl: null,
+      coverPhotoKey: null,
       items: [] as {
         itemId: string;
         x: number;
@@ -57,7 +57,7 @@ describe("toCalendarWearDto", () => {
         outfit: {
           id: "outfit-1",
           name: "Weekend look",
-          coverPhotoUrl: null,
+          coverPhotoKey: null,
           items: [
             {
               itemId: "item-1",

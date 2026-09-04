@@ -10,7 +10,7 @@ type WearWithOutfit = {
   outfit: {
     id: string;
     name: string;
-    coverPhotoUrl: string | null;
+    coverPhotoKey: string | null;
     items: Parameters<typeof toOutfitItemDto>[0][];
   };
 };
@@ -22,7 +22,7 @@ export function toCalendarWearDto(wear: WearWithOutfit): CalendarWearDto {
     outfit: {
       id: wear.outfit.id,
       name: wear.outfit.name,
-      coverPhotoUrl: wear.outfit.coverPhotoUrl,
+      coverPhotoUrl: wear.outfit.coverPhotoKey ? `/outfits/${wear.outfit.id}/photo/cover` : null,
       items: wear.outfit.items.map(toOutfitItemDto),
     },
   };
@@ -46,7 +46,7 @@ export async function wearRoutes(app: FastifyInstance) {
           select: {
             id: true,
             name: true,
-            coverPhotoUrl: true,
+            coverPhotoKey: true,
             items: {
               include: {
                 item: { include: { category: true, colors: { include: { color: true } } } },

@@ -7,8 +7,12 @@ import {
   type OutfitDto,
   type OutfitItemDto,
 } from "@wardrobe/shared";
+import { LocalStorageDriver, validateAndStripImage, InvalidImageError } from "@wardrobe/storage";
 import { prisma, Prisma } from "@wardrobe/db";
 import { requireSession, canModify } from "./authorization.js";
+
+const storageDir = process.env.STORAGE_DIR ?? "./.data/photos";
+const storage = new LocalStorageDriver(storageDir);
 
 const OUTFIT_INCLUDE = {
   items: {
@@ -56,7 +60,7 @@ export function toOutfitDto(outfit: OutfitWithRelations): OutfitDto {
     ownerId: outfit.ownerId,
     name: outfit.name,
     description: outfit.description,
-    coverPhotoUrl: outfit.coverPhotoUrl,
+    coverPhotoUrl: outfit.coverPhotoKey ? `/outfits/${outfit.id}/photo/cover` : null,
     rating: outfit.rating,
     items: outfit.items.map(toOutfitItemDto),
     tags: outfit.tags.map((ot) => ot.tag.name),
@@ -207,16 +211,25 @@ export async function outfitRoutes(app: FastifyInstance) {
             data: {
               items: {
                 create: placements.map((p) => ({
-                itemId: p.itemId,
-                x: p.x,
-                y: p.y,
-                zIndex: p.zIndex,
-                scale: p.scale,
-                rotation: p.rotation,
-              })),
+                  itemId: p.itemId,
+                  x: p.x,
+                  y: p.y,
+                  zIndex: p.zIndex,
+                  scale: p.scale,
+                  rotation: p.rotation,
+                })),
               },
+              // The generated cover photo reflects a specific set of
+              // placements, so clearing the canvas invalidates it - a fresh
+              // one is only produced client-side once items are placed again.
+              ...(placements.length === 0 && existing.coverPhotoKey
+                ? { coverPhotoKey: null }
+                : {}),
             },
           });
+          if (placements.length === 0 && existing.coverPhotoKey) {
+            await storage.delete(existing.coverPhotoKey);
+          }
         }
 
         if (tagNames !== undefined) {
@@ -295,6 +308,69 @@ export async function outfitRoutes(app: FastifyInstance) {
 
     await prisma.outfit.delete({ where: { id: existing.id } });
 
+    if (existing.coverPhotoKey) {
+      await storage.delete(existing.coverPhotoKey);
+    }
+
     return reply.status(204).send();
+  });
+
+  app.post<{ Params: { id: string } }>("/outfits/:id/photo", async (request, reply) => {
+    const session = await requireSession(request, reply);
+    if (!session) return;
+
+    const existing = await prisma.outfit.findUnique({ where: { id: request.params.id } });
+    if (!existing || !canModify(existing, session.user.id)) {
+      return reply.status(404).send({ error: "Outfit not found." });
+    }
+
+    const file = await request.file();
+    if (!file) {
+      return reply.status(400).send({ error: "No photo uploaded." });
+    }
+    const buffer = await file.toBuffer();
+
+    let processed;
+    try {
+      processed = await validateAndStripImage(buffer);
+    } catch (error) {
+      if (error instanceof InvalidImageError) {
+        return reply.status(400).send({ error: error.message });
+      }
+      throw error;
+    }
+
+    const { key } = await storage.save({
+      buffer: processed.buffer,
+      extension: processed.extension,
+    });
+    const previousKey = existing.coverPhotoKey;
+
+    const outfit = await prisma.outfit.update({
+      where: { id: existing.id },
+      data: { coverPhotoKey: key },
+      include: OUTFIT_INCLUDE,
+    });
+
+    if (previousKey) {
+      await storage.delete(previousKey);
+    }
+
+    return reply.send(toOutfitDto(outfit));
+  });
+
+  app.get<{ Params: { id: string } }>("/outfits/:id/photo/cover", async (request, reply) => {
+    const session = await requireSession(request, reply);
+    if (!session) return;
+
+    const outfit = await prisma.outfit.findUnique({ where: { id: request.params.id } });
+    if (!outfit || !canModify(outfit, session.user.id) || !outfit.coverPhotoKey) {
+      return reply.status(404).send({ error: "Photo not found." });
+    }
+
+    const buffer = await storage.read(outfit.coverPhotoKey);
+    reply.header("content-type", "image/png");
+    reply.header("cache-control", "no-store");
+    return reply.send(buffer);
   });
 }

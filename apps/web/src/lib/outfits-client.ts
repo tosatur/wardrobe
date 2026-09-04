@@ -90,3 +90,14 @@ export async function listWears(range: { start: string; end: string }): Promise<
   if (!res.ok) throw new Error("Failed to load wear history.");
   return res.json();
 }
+
+export async function uploadOutfitCoverPhoto(
+  id: string,
+  photo: Blob,
+): Promise<{ data: OutfitDto | null; error: string | null }> {
+  const formData = new FormData();
+  formData.set("photo", photo, "cover.png");
+  const res = await authFetch(`/outfits/${id}/photo`, { method: "POST", body: formData });
+  if (!res.ok) return { data: null, error: await parseErrorBody(res) };
+  return { data: await res.json(), error: null };
+}

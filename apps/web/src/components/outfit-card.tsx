@@ -11,7 +11,7 @@ export function OutfitCard({ outfit }: { outfit: OutfitDto }) {
     // inside an anchor (same reasoning as ItemCard).
     <div className="group relative">
       <Link href={`/outfits/${outfit.id}`} className="block">
-        <OutfitCanvas readOnly items={outfit.items} />
+        <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
 
         {/* Same hover-reveal caption treatment as ItemCard. */}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/75 via-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100" />

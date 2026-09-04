@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import Fastify from "fastify";
+import multipart from "@fastify/multipart";
 import type { OutfitDto } from "@wardrobe/shared";
 import { toOutfitDto } from "./outfits.js";
 
@@ -40,6 +41,20 @@ vi.mock("@wardrobe/db", () => ({
   Prisma: {},
 }));
 
+vi.mock("@wardrobe/storage", () => ({
+  LocalStorageDriver: class {
+    save = vi.fn().mockResolvedValue({ key: "new-key.png" });
+    read = vi.fn().mockResolvedValue(Buffer.from("fake-png-bytes"));
+    delete = vi.fn();
+  },
+  validateAndStripImage: vi.fn().mockResolvedValue({
+    buffer: Buffer.from("fake"),
+    mime: "image/png",
+    extension: "png",
+  }),
+  InvalidImageError: class InvalidImageError extends Error {},
+}));
+
 vi.mock("./authorization.js", () => ({
   requireSession: vi.fn().mockResolvedValue({ user: { id: "user-1", role: "member" } }),
   canModify: () => true,
@@ -51,7 +66,7 @@ function makeOutfit(overrides: Partial<Record<string, unknown>> = {}) {
     ownerId: "user-1",
     name: "Weekend look",
     description: null,
-    coverPhotoUrl: null,
+    coverPhotoKey: null,
     rating: null,
     items: [] as {
       itemId: string;
@@ -328,6 +343,95 @@ describe("POST /outfits/:id/wears", () => {
 
     expect(response.statusCode).toBe(404);
     expect(prisma.outfit.update).not.toHaveBeenCalled();
+    await app.close();
+  });
+});
+
+describe("POST /outfits/:id/photo", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function injectPhoto(app: ReturnType<typeof Fastify>, url: string) {
+    const boundary = "----testboundary";
+    const body = Buffer.concat([
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="photo"; filename="cover.png"\r\nContent-Type: image/png\r\n\r\n`,
+      ),
+      Buffer.from("fake-image-bytes"),
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ]);
+    return app.inject({
+      method: "POST",
+      url,
+      headers: { "content-type": `multipart/form-data; boundary=${boundary}` },
+      payload: body,
+    });
+  }
+
+  it("stores the cover photo", async () => {
+    const { outfitRoutes } = await import("./outfits.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.outfit.findUnique).mockResolvedValue(
+      makeOutfit({ coverPhotoKey: "old-cover.png" }) as never,
+    );
+    vi.mocked(prisma.outfit.update).mockResolvedValue(
+      makeOutfit({ coverPhotoKey: "new-key.png" }) as never,
+    );
+
+    const app = Fastify();
+    await app.register(multipart);
+    await app.register(outfitRoutes);
+
+    const response = await injectPhoto(app, "/outfits/outfit-1/photo");
+
+    expect(response.statusCode).toBe(200);
+    expect(prisma.outfit.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "outfit-1" },
+        data: { coverPhotoKey: "new-key.png" },
+      }),
+    );
+    await app.close();
+  });
+
+  it("returns 404 when the outfit doesn't exist or isn't owned by the session user", async () => {
+    const { outfitRoutes } = await import("./outfits.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.outfit.findUnique).mockResolvedValue(null);
+
+    const app = Fastify();
+    await app.register(multipart);
+    await app.register(outfitRoutes);
+
+    const response = await injectPhoto(app, "/outfits/outfit-1/photo");
+
+    expect(response.statusCode).toBe(404);
+    await app.close();
+  });
+});
+
+describe("GET /outfits/:id/photo/cover", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 404 when the outfit has no cover photo", async () => {
+    const { outfitRoutes } = await import("./outfits.js");
+    const { prisma } = await import("@wardrobe/db");
+
+    vi.mocked(prisma.outfit.findUnique).mockResolvedValue(
+      makeOutfit({ coverPhotoKey: null }) as never,
+    );
+
+    const app = Fastify();
+    await app.register(outfitRoutes);
+
+    const response = await app.inject({ method: "GET", url: "/outfits/outfit-1/photo/cover" });
+
+    expect(response.statusCode).toBe(404);
     await app.close();
   });
 });
