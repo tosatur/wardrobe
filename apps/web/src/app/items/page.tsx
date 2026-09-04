@@ -4,9 +4,11 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { ArchiveIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -137,14 +139,23 @@ function ItemsPageContent() {
                 interceptor treats any soft navigation to /items/* as an
                 overlay on this page, and there's no item with id "archive"
                 to show - see the analogous comment in outfits/page.tsx. */}
-            <Button
-              type="button"
-              variant="outline"
-              // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
-              onClick={() => (window.location.href = "/items/archive")}
-            >
-              Archive
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label="Archived items"
+                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
+                    onClick={() => (window.location.href = "/items/archive")}
+                  />
+                }
+              >
+                <ArchiveIcon />
+              </TooltipTrigger>
+              <TooltipContent>Archived items</TooltipContent>
+            </Tooltip>
             <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
             <Button render={<Link href="/items/new" />}>+ Add item</Button>
           </div>
