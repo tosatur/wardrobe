@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
 import { updateItem } from "@/lib/items-client";
 import { cn } from "@/lib/utils";
@@ -40,18 +41,25 @@ export function ItemCardMenu({ item, triggerClassName }: { item: ItemDto; trigge
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="outline"
-              size="icon-xs"
-              className={cn("rounded-full", triggerClassName)}
-              aria-label="Item actions"
-            />
-          }
-        >
-          <EllipsisVertical />
-        </DropdownMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon-xs"
+                    className={cn("rounded-full", triggerClassName)}
+                    aria-label="Item actions"
+                  />
+                }
+              />
+            }
+          >
+            <EllipsisVertical />
+          </TooltipTrigger>
+          <TooltipContent>Item actions</TooltipContent>
+        </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuItem render={<Link href={`/items/${item.id}`} />}>View</DropdownMenuItem>
           <DropdownMenuItem render={<Link href={`/items/${item.id}/edit`} />}>Edit</DropdownMenuItem>

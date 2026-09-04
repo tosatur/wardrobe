@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DatePicker } from "@/components/date-picker";
 
 function formatDate(date: string) {
@@ -51,15 +52,22 @@ export function WornDatesEditor({
               className="flex items-center justify-between gap-2 border border-foreground/10 bg-muted px-2.5 py-1.5 text-sm"
             >
               <span>{formatDate(date)}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => removeDate(date)}
-                aria-label={`Remove ${formatDate(date)}`}
-              >
-                <XIcon />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => removeDate(date)}
+                      aria-label={`Remove ${formatDate(date)}`}
+                    />
+                  }
+                >
+                  <XIcon />
+                </TooltipTrigger>
+                <TooltipContent>Remove</TooltipContent>
+              </Tooltip>
             </li>
           ))}
         </ul>

@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteOutfitDialog } from "@/components/delete-outfit-dialog";
 import { logWear } from "@/lib/outfits-client";
 import { cn } from "@/lib/utils";
@@ -46,18 +47,25 @@ export function OutfitCardMenu({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="outline"
-              size="icon-xs"
-              className={cn("rounded-full", triggerClassName)}
-              aria-label="Outfit actions"
-            />
-          }
-        >
-          <EllipsisVertical />
-        </DropdownMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon-xs"
+                    className={cn("rounded-full", triggerClassName)}
+                    aria-label="Outfit actions"
+                  />
+                }
+              />
+            }
+          >
+            <EllipsisVertical />
+          </TooltipTrigger>
+          <TooltipContent>Outfit actions</TooltipContent>
+        </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuItem render={<Link href={`/outfits/${outfit.id}`} />}>View</DropdownMenuItem>
           <DropdownMenuItem render={<Link href={`/outfits/${outfit.id}/edit`} />}>

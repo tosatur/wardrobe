@@ -113,15 +113,22 @@ export function ItemHistoryTimeline({ itemId }: { itemId: string }) {
                   )}
                 </div>
                 {entry.kind === "event" && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label="Remove event"
-                    onClick={() => void handleDelete(entry.id)}
-                  >
-                    <XIcon />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label="Remove event"
+                          onClick={() => void handleDelete(entry.id)}
+                        />
+                      }
+                    >
+                      <XIcon />
+                    </TooltipTrigger>
+                    <TooltipContent>Remove event</TooltipContent>
+                  </Tooltip>
                 )}
               </li>
             );
