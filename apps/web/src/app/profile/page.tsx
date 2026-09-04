@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { GeocodeResultDto } from "@wardrobe/shared";
 
 export default function ProfilePage() {
@@ -132,144 +133,165 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg space-y-6 px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile picture</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AvatarUpload
-            currentImageUrl={session.user.image}
-            name={session.user.name}
-            onUploaded={() => void getSession().then(setSession)}
-          />
-        </CardContent>
-      </Card>
+    <main className="mx-auto max-w-lg px-4 py-8">
+      <Tabs defaultValue="account">
+        <TabsList className="w-full">
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Account</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={(e) => void handleAccountSubmit(e)}>
-            <FieldGroup>
+        <TabsContent value="account" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile picture</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AvatarUpload
+                currentImageUrl={session.user.image}
+                name={session.user.name}
+                onUploaded={() => void getSession().then(setSession)}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Account</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={(e) => void handleAccountSubmit(e)}>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="profile-name">Name</FieldLabel>
+                    <Input
+                      id="profile-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="profile-email">Email</FieldLabel>
+                    <Input
+                      id="profile-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </Field>
+                  <Button type="submit">Save account</Button>
+                </FieldGroup>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Password</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={(e) => void handlePasswordSubmit(e)}>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="profile-current-password">Current password</FieldLabel>
+                    <Input
+                      id="profile-current-password"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="profile-new-password">New password</FieldLabel>
+                    <Input
+                      id="profile-new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={8}
+                    />
+                  </Field>
+                  <Button type="submit">Change password</Button>
+                </FieldGroup>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="preferences" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Location</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">Used to show weather on the calendar.</p>
+              <Input
+                placeholder="Search for a city…"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+              />
+              {locationResults.length > 0 && (
+                <ul className="divide-y divide-border rounded-sm border border-border">
+                  {locationResults.map((result, i) => (
+                    <li key={`${result.name}-${i}`}>
+                      <button
+                        type="button"
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                        onClick={() => void handleSelectLocation(result)}
+                      >
+                        {result.name}
+                        {result.admin1 ? `, ${result.admin1}` : ""}
+                        {result.country ? `, ${result.country}` : ""}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {session.user.locationName && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void handleClearLocation()}
+                >
+                  Clear location
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Currency</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
               <Field>
-                <FieldLabel htmlFor="profile-name">Name</FieldLabel>
-                <Input id="profile-name" value={name} onChange={(e) => setName(e.target.value)} required />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="profile-email">Email</FieldLabel>
-                <Input
-                  id="profile-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                <FieldLabel htmlFor="profile-currency">Default currency</FieldLabel>
+                <p className="text-sm text-muted-foreground">
+                  Used to prefill new items&apos; price currency.
+                </p>
+                <CurrencySelect
+                  id="profile-currency"
+                  value={session.user.defaultCurrency}
+                  onChange={(next) => void handleCurrencyChange(next)}
                 />
               </Field>
-              <Button type="submit">Save account</Button>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Password</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={(e) => void handlePasswordSubmit(e)}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="profile-current-password">Current password</FieldLabel>
-                <Input
-                  id="profile-current-password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="profile-new-password">New password</FieldLabel>
-                <Input
-                  id="profile-new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={8}
-                />
-              </Field>
-              <Button type="submit">Change password</Button>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Location</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-muted-foreground">Used to show weather on the calendar.</p>
-          <Input
-            placeholder="Search for a city…"
-            value={locationQuery}
-            onChange={(e) => setLocationQuery(e.target.value)}
-          />
-          {locationResults.length > 0 && (
-            <ul className="divide-y divide-border rounded-sm border border-border">
-              {locationResults.map((result, i) => (
-                <li key={`${result.name}-${i}`}>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                    onClick={() => void handleSelectLocation(result)}
-                  >
-                    {result.name}
-                    {result.admin1 ? `, ${result.admin1}` : ""}
-                    {result.country ? `, ${result.country}` : ""}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {session.user.locationName && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => void handleClearLocation()}>
-              Clear location
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Preferences</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Field>
-            <FieldLabel htmlFor="profile-currency">Default currency</FieldLabel>
-            <p className="text-sm text-muted-foreground">
-              Used to prefill new items&apos; price currency.
-            </p>
-            <CurrencySelect
-              id="profile-currency"
-              value={session.user.defaultCurrency}
-              onChange={(next) => void handleCurrencyChange(next)}
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ThemeToggle />
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ThemeToggle />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }
