@@ -10,6 +10,7 @@ export default function CalendarDayPage({ params }: { params: Promise<{ date: st
     weekday: "long",
     month: "long",
     day: "numeric",
+    year: "numeric",
   });
 
   return (

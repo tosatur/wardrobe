@@ -15,10 +15,11 @@ export default function InterceptedCalendarDayPage({
     weekday: "long",
     month: "long",
     day: "numeric",
+    year: "numeric",
   });
 
   return (
-    <RouteModal title={formatted} className="sm:max-w-md">
+    <RouteModal title={formatted} className="sm:max-w-md lg:max-w-md">
       <DaySummaryContent date={date} />
     </RouteModal>
   );

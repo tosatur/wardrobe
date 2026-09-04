@@ -62,23 +62,28 @@ export function DaySummaryContent({ date }: { date: string }) {
       {dayWears.length === 0 ? (
         <EmptyState>No outfits logged.</EmptyState>
       ) : (
-        <div className="space-y-1">
-          {dayWears.map((wear) => (
-            <Link
-              key={wear.id}
-              href={`/outfits/${wear.outfit.id}`}
-              className="flex items-center gap-3 rounded-sm p-1 transition-colors hover:bg-muted"
-            >
-              <div className="size-14 shrink-0 overflow-hidden rounded-sm">
-                <OutfitCanvas
-                  readOnly
-                  items={wear.outfit.items}
-                  coverPhotoUrl={wear.outfit.coverPhotoUrl}
-                />
-              </div>
-              <span className="text-sm font-medium">{wear.outfit.name}</span>
-            </Link>
-          ))}
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {dayWears.length} {dayWears.length === 1 ? "outfit" : "outfits"} logged
+          </p>
+          <div className="space-y-1">
+            {dayWears.map((wear) => (
+              <Link
+                key={wear.id}
+                href={`/outfits/${wear.outfit.id}`}
+                className="flex items-center gap-3 rounded-sm p-1 transition-colors hover:bg-muted"
+              >
+                <div className="size-14 shrink-0 overflow-hidden rounded-sm">
+                  <OutfitCanvas
+                    readOnly
+                    items={wear.outfit.items}
+                    coverPhotoUrl={wear.outfit.coverPhotoUrl}
+                  />
+                </div>
+                <span className="text-sm font-medium">{wear.outfit.name}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>
