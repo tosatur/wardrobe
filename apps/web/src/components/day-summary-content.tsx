@@ -51,6 +51,7 @@ export function DaySummaryContent({ date }: { date: string }) {
     <div className="space-y-6">
       {weather && Icon && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {/* eslint-disable-next-line react-hooks/static-components -- weatherIcon selects a stable, statically-imported lucide icon, not one created during render */}
           <Icon className="size-4" />
           <span>
             {weatherLabel(weather.weatherCode)} · {Math.round(weather.tempMaxC)}°/
@@ -76,6 +77,7 @@ export function DaySummaryContent({ date }: { date: string }) {
                 <div className="size-14 shrink-0 overflow-hidden rounded-sm">
                   <OutfitCanvas
                     readOnly
+                    thumbnail
                     items={wear.outfit.items}
                     coverPhotoUrl={wear.outfit.coverPhotoUrl}
                   />

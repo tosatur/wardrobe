@@ -21,6 +21,7 @@ export function CalendarWearTile({
       >
         <OutfitCanvas
           readOnly
+          thumbnail
           items={wear.outfit.items}
           coverPhotoUrl={wear.outfit.coverPhotoUrl}
         />

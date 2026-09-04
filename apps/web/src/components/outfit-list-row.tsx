@@ -10,7 +10,7 @@ export function OutfitListRow({ outfit }: { outfit: OutfitDto }) {
     <div className="group flex items-center gap-3 border-b border-border py-2 last:border-b-0">
       <Link href={`/outfits/${outfit.id}`} className="flex min-w-0 flex-1 items-center gap-3">
         <div className="size-12 shrink-0">
-          <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
+          <OutfitCanvas readOnly thumbnail items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{outfit.name}</p>
