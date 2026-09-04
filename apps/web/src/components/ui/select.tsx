@@ -63,7 +63,15 @@ function SelectContent({
   sideOffset = 4,
   align = "center",
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  // Defaults to false (unlike the base-ui/shadcn recipe): aligning the
+  // selected item under the trigger disables the open animation entirely
+  // (see data-[align-trigger=true]:animate-none below), which made every
+  // Select in the app pop open with no transition while DropdownMenu,
+  // Popover and Combobox all animate. None of this app's selects are long
+  // enough to need that native-select-style alignment, so opening below
+  // the trigger like the other overlays - animated the same way - is both
+  // simpler and consistent.
+  alignItemWithTrigger = false,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
