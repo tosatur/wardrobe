@@ -144,6 +144,11 @@
     }
   html {
     @apply font-sans;
+    /* Reserve the scrollbar's width on every page, scrolling or not, so
+       the sticky nav doesn't shift sideways when navigating from a page
+       tall enough to scroll (e.g. the item list) to one that exactly
+       fills the viewport (e.g. the outfit editor). */
+    scrollbar-gutter: stable;
     }
 }
 
