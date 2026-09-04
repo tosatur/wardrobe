@@ -14,7 +14,12 @@ import { DayWeather } from "@/components/day-weather";
 import { getWeather } from "@/lib/weather-client";
 import { toDateKey } from "@/lib/date";
 
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+// getDay() is Sun=0..Sat=6; shift so weeks are laid out Mon=0..Sun=6.
+function mondayIndex(date: Date) {
+  return (date.getDay() + 6) % 7;
+}
 
 function toMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -65,9 +70,9 @@ function CalendarPageContent() {
   const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
   const gridStart = new Date(monthStart);
-  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+  gridStart.setDate(gridStart.getDate() - mondayIndex(gridStart));
   const gridEnd = new Date(monthEnd);
-  gridEnd.setDate(gridEnd.getDate() + (6 - gridEnd.getDay()));
+  gridEnd.setDate(gridEnd.getDate() + (6 - mondayIndex(gridEnd)));
 
   const days: Date[] = [];
   for (let d = new Date(gridStart); d <= gridEnd; d.setDate(d.getDate() + 1)) {
