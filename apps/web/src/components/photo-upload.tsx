@@ -2,7 +2,9 @@
 
 import { useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
+import { ImageUpIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { API_URL } from "@/lib/auth-client";
 import { uploadItemPhoto } from "@/lib/items-client";
@@ -79,16 +81,26 @@ export function PhotoUpload({
       {/* Fixed dark glass rather than the theme-relative .glass utility,
           this floats over an arbitrary photo, not page background, so it
           needs to stay legible regardless of the site's own light/dark mode. */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={uploading}
-        onClick={() => inputRef.current?.click()}
-        className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
-      >
-        {uploading ? "Uploading…" : currentPhotoUrl ? "Replace photo" : "Upload photo"}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={uploading}
+              aria-label={currentPhotoUrl ? "Replace photo" : "Upload photo"}
+              onClick={() => inputRef.current?.click()}
+              className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
+            />
+          }
+        >
+          <ImageUpIcon />
+        </TooltipTrigger>
+        <TooltipContent>
+          {uploading ? "Uploading…" : currentPhotoUrl ? "Replace photo" : "Upload photo"}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
+import { ImageUpIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Stages a photo locally (no upload), for the create flow, where there's no
 // item id yet to upload against. The parent uploads it once the item exists.
@@ -33,15 +35,23 @@ export function PhotoPicker({
         className="hidden"
         onChange={(e: ChangeEvent<HTMLInputElement>) => onSelect(e.target.files?.[0] ?? null)}
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => inputRef.current?.click()}
-        className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
-      >
-        {hasFile ? "Replace photo" : "Choose photo"}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={hasFile ? "Replace photo" : "Choose photo"}
+              onClick={() => inputRef.current?.click()}
+              className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
+            />
+          }
+        >
+          <ImageUpIcon />
+        </TooltipTrigger>
+        <TooltipContent>{hasFile ? "Replace photo" : "Choose photo"}</TooltipContent>
+      </Tooltip>
     </div>
   );
 }
