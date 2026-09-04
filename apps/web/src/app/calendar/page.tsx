@@ -33,15 +33,15 @@ function addMonths(date: Date, n: number) {
   return new Date(date.getFullYear(), date.getMonth() + n, 1);
 }
 
-const MAX_VISIBLE_WEARS = 4;
+const MAX_VISIBLE_WEARS = 3;
 
-// Shown tiles get smaller as more outfits share a day, so a busy day still
-// wraps into the cell instead of overflowing it.
-function wearTileSizeClass(count: number) {
-  if (count <= 1) return "size-16";
-  if (count === 2) return "size-12";
-  if (count <= MAX_VISIBLE_WEARS) return "size-10";
-  return "size-8";
+// A single outfit fills most of the cell; from two onward, tiles are sized
+// so only two fit per row, which makes the flex-wrap below arrange them on
+// its own: 2 wears sit side by side, 3 fall into a 2-over-1 triangle, and 4
+// (three outfits plus the overflow badge as the fourth tile) form a 2x2
+// square — no manual row-by-row layout needed.
+function wearTileWidthClass(count: number) {
+  return count <= 1 ? "w-[74%]" : "w-[45%]";
 }
 
 export default function CalendarPage() {
@@ -193,8 +193,8 @@ function CalendarPageContent() {
                       href={`/outfits/${wear.outfit.id}`}
                       title={wear.outfit.name}
                       className={cn(
-                        "block shrink-0 overflow-hidden rounded-sm",
-                        wearTileSizeClass(dayWears.length),
+                        "block aspect-square shrink-0 overflow-hidden rounded-sm",
+                        wearTileWidthClass(dayWears.length),
                       )}
                     >
                       <OutfitCanvas readOnly items={wear.outfit.items} />
@@ -203,8 +203,8 @@ function CalendarPageContent() {
                   {dayWears.length > MAX_VISIBLE_WEARS && (
                     <span
                       className={cn(
-                        "flex shrink-0 items-center justify-center rounded-sm border border-border bg-muted text-[0.65rem] font-medium text-muted-foreground",
-                        wearTileSizeClass(dayWears.length),
+                        "flex aspect-square shrink-0 items-center justify-center rounded-sm border border-border bg-muted text-xs font-medium text-muted-foreground",
+                        wearTileWidthClass(dayWears.length),
                       )}
                     >
                       +{dayWears.length - MAX_VISIBLE_WEARS}
