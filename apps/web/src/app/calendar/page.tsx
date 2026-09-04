@@ -12,6 +12,7 @@ import { listWears } from "@/lib/outfits-client";
 import { OutfitCanvas } from "@/components/outfit-canvas";
 import { DayWeather } from "@/components/day-weather";
 import { getWeather } from "@/lib/weather-client";
+import { toDateKey } from "@/lib/date";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -30,13 +31,6 @@ function parseMonthKey(key: string | null): Date {
 
 function addMonths(date: Date, n: number) {
   return new Date(date.getFullYear(), date.getMonth() + n, 1);
-}
-
-// Buckets by the viewer's own local calendar day — a wear logged "today"
-// should land on today's cell regardless of the timezone offset between the
-// server's UTC timestamp and the browser rendering the grid.
-function toDateKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 export default function CalendarPage() {
