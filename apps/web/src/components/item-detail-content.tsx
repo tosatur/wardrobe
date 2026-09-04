@@ -5,10 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ArchiveIcon, ArchiveRestoreIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { ItemHistoryTimeline } from "@/components/item-history-timeline";
@@ -111,25 +114,59 @@ export function ItemDetailContent({ id }: { id: string }) {
                 <p className="text-sm text-muted-foreground">{item.category.name}</p>
               )}
             </div>
-            <div className="flex gap-2">
+            <ButtonGroup>
               {/* Replace, not push: swapping to the edit view of the same
                   item shouldn't grow the back-stack, so closing the modal
                   after a save returns straight to whatever opened this view
                   instead of stepping back through the edit screen. */}
-              <Button
-                variant="outline"
-                size="sm"
-                render={<Link href={`/items/${id}/edit`} replace />}
-              >
-                Edit
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => void handleToggleArchived()}>
-                {item.status === "archived" ? "Unarchive" : "Archive"}
-              </Button>
-              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-                Delete
-              </Button>
-            </div>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label="Edit item"
+                      render={<Link href={`/items/${id}/edit`} replace />}
+                    />
+                  }
+                >
+                  <PencilIcon />
+                </TooltipTrigger>
+                <TooltipContent>Edit item</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label={item.status === "archived" ? "Unarchive item" : "Archive item"}
+                      onClick={() => void handleToggleArchived()}
+                    />
+                  }
+                >
+                  {item.status === "archived" ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {item.status === "archived" ? "Unarchive item" : "Archive item"}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      aria-label="Delete item"
+                      onClick={() => setDeleteOpen(true)}
+                    />
+                  }
+                >
+                  <Trash2Icon />
+                </TooltipTrigger>
+                <TooltipContent>Delete item</TooltipContent>
+              </Tooltip>
+            </ButtonGroup>
           </CardHeader>
           <CardContent className="space-y-6">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">

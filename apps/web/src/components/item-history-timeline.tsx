@@ -4,10 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Droplets, Scissors, TriangleAlert, Wrench, Shirt, XIcon } from "lucide-react";
+import { Droplets, PlusIcon, Scissors, TriangleAlert, Wrench, Shirt, XIcon } from "lucide-react";
 import type { ItemEventType } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddItemEventDialog } from "@/components/add-item-event-dialog";
 import { deleteItemEvent, listItemHistory } from "@/lib/items-client";
 
@@ -55,9 +56,21 @@ export function ItemHistoryTimeline({ itemId }: { itemId: string }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">History</p>
-        <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
-          Log an event
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Log an event"
+                onClick={() => setAddOpen(true)}
+              />
+            }
+          >
+            <PlusIcon />
+          </TooltipTrigger>
+          <TooltipContent>Log an event</TooltipContent>
+        </Tooltip>
       </div>
 
       {isPending && (
