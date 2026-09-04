@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArchiveIcon, ArchiveRestoreIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { ArchiveIcon, ArchiveRestoreIcon, Loader2Icon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +103,22 @@ export function ItemDetailContent({ id }: { id: string }) {
               onChange={setShowOriginal}
               className="absolute right-3 bottom-3"
             />
+          )}
+          {item.photoStatus === "processing" && (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <div
+                    role="status"
+                    aria-label="Removing background"
+                    className="absolute top-3 right-3 flex items-center justify-center rounded-sm border border-white/20 bg-black/40 p-1.5 text-white backdrop-blur-md"
+                  />
+                }
+              >
+                <Loader2Icon className="size-4 animate-spin" />
+              </TooltipTrigger>
+              <TooltipContent>Removing background…</TooltipContent>
+            </Tooltip>
           )}
         </div>
 
