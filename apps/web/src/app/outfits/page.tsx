@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -49,7 +48,19 @@ function OutfitsPageContent() {
           <h1 className="font-heading text-3xl font-black tracking-tight uppercase">
             Your outfits
           </h1>
-          <Button render={<Link href="/outfits/new" />}>+ Add outfit</Button>
+          {/* A forced hard navigation, not next/link's Link: the
+              (.)outfits/[id] interceptor treats any soft (client-side)
+              navigation under /outfits/* as an overlay on the current page
+              and never mounts the real target route, which would otherwise
+              leave this page showing behind a blank modal slot instead of
+              opening the outfit editor. */}
+          <Button
+            type="button"
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
+            onClick={() => (window.location.href = "/outfits/new")}
+          >
+            + Add outfit
+          </Button>
         </div>
       </div>
 
