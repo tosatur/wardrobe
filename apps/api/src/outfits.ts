@@ -11,7 +11,11 @@ import { prisma, Prisma } from "@wardrobe/db";
 import { requireSession, canModify } from "./authorization.js";
 
 const OUTFIT_INCLUDE = {
-  items: { include: { item: { include: { category: true } } } },
+  items: {
+    include: {
+      item: { include: { category: true, colors: { include: { color: true } } } },
+    },
+  },
   tags: { include: { tag: true } },
   wears: { orderBy: { wornDate: "desc" } },
 } as const;
@@ -33,6 +37,13 @@ export function toOutfitItemDto(oi: OutfitItemWithItem): OutfitItemDto {
       nickname: oi.item.nickname,
       categoryName: oi.item.category.name,
       photoCutoutUrl: oi.item.photoCutoutKey ? `/items/${oi.item.id}/photo/cutout` : null,
+      colors: oi.item.colors.map((ic) => ({
+        id: ic.color.id,
+        name: ic.color.name,
+        hex: ic.color.hex,
+      })),
+      price: oi.item.price === null ? null : Number(oi.item.price),
+      currency: oi.item.currency,
     },
   };
 }

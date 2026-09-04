@@ -33,7 +33,15 @@ function makeWear(overrides: Partial<Record<string, unknown>> = {}) {
         x: number;
         y: number;
         zIndex: number;
-        item: { id: string; nickname: string | null; photoCutoutKey: string | null; category: { name: string } };
+        item: {
+          id: string;
+          nickname: string | null;
+          photoCutoutKey: string | null;
+          category: { name: string };
+          colors: { color: { id: string; name: string; hex: string } }[];
+          price: number | null;
+          currency: string;
+        };
       }[],
     },
     ...overrides,
@@ -54,7 +62,15 @@ describe("toCalendarWearDto", () => {
               x: 25,
               y: 40,
               zIndex: 1,
-              item: { id: "item-1", nickname: "Denim jacket", photoCutoutKey: "cutout.png", category: { name: "Jackets" } },
+              item: {
+                id: "item-1",
+                nickname: "Denim jacket",
+                photoCutoutKey: "cutout.png",
+                category: { name: "Jackets" },
+                colors: [{ color: { id: "color-1", name: "Blue", hex: "#2563EB" } }],
+                price: 89.99,
+                currency: "USD",
+              },
             },
           ],
         },
@@ -74,7 +90,15 @@ describe("toCalendarWearDto", () => {
             x: 25,
             y: 40,
             zIndex: 1,
-            item: { id: "item-1", nickname: "Denim jacket", categoryName: "Jackets", photoCutoutUrl: "/items/item-1/photo/cutout" },
+            item: {
+              id: "item-1",
+              nickname: "Denim jacket",
+              categoryName: "Jackets",
+              photoCutoutUrl: "/items/item-1/photo/cutout",
+              colors: [{ id: "color-1", name: "Blue", hex: "#2563EB" }],
+              price: 89.99,
+              currency: "USD",
+            },
           },
         ],
       },

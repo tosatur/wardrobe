@@ -31,6 +31,7 @@ import { TagPicker } from "@/components/tag-picker";
 import { WornDatesEditor } from "@/components/worn-dates-editor";
 import { ItemPalette } from "@/components/item-palette";
 import { OutfitCanvas } from "@/components/outfit-canvas";
+import { OutfitAnalysis } from "@/components/outfit-analysis";
 import { OutfitDragOverlay, type ActiveDragGhost } from "@/components/outfit-drag-overlay";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
 import { createOutfit, logWear, updateOutfit, type OutfitPayload } from "@/lib/outfits-client";
@@ -285,6 +286,13 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
                 <SectionEyebrow>Worn on</SectionEyebrow>
                 <WornDatesEditor value={wornDates} onChange={(v) => setValue("wornDates", v)} />
               </div>
+
+              {placements.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <SectionEyebrow>Analysis</SectionEyebrow>
+                  <OutfitAnalysis items={placements} />
+                </div>
+              )}
             </div>
           </div>
         </div>

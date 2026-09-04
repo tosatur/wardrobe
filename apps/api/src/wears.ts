@@ -47,7 +47,11 @@ export async function wearRoutes(app: FastifyInstance) {
             id: true,
             name: true,
             coverPhotoUrl: true,
-            items: { include: { item: { include: { category: true } } } },
+            items: {
+              include: {
+                item: { include: { category: true, colors: { include: { color: true } } } },
+              },
+            },
           },
         },
       },

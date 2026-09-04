@@ -47,6 +47,9 @@ export const OutfitItemDtoSchema = z.object({
     nickname: z.string().nullable(),
     categoryName: z.string(),
     photoCutoutUrl: z.string().nullable(),
+    colors: z.array(z.object({ id: z.string(), name: z.string(), hex: z.string() })),
+    price: z.number().nullable(),
+    currency: z.string(),
   }),
 });
 export type OutfitItemDto = z.infer<typeof OutfitItemDtoSchema>;

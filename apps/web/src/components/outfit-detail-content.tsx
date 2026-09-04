@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { OutfitCanvas } from "@/components/outfit-canvas";
+import { OutfitAnalysis } from "@/components/outfit-analysis";
 import { EmptyState } from "@/components/empty-state";
 import { deleteOutfit, getOutfit, logWear } from "@/lib/outfits-client";
 
@@ -156,6 +157,8 @@ export function OutfitDetailContent({ id }: { id: string }) {
               </div>
             </div>
           )}
+
+          <OutfitAnalysis items={outfit.items.map((oi) => oi.item)} />
         </CardContent>
       </Card>
     </div>

@@ -9,6 +9,9 @@ export type CanvasPlacement = {
   nickname: string | null;
   categoryName: string;
   photoCutoutUrl: string | null;
+  colors: { id: string; name: string; hex: string }[];
+  price: number | null;
+  currency: string;
 };
 
 type PaletteItem = {
@@ -16,6 +19,9 @@ type PaletteItem = {
   nickname: string | null;
   categoryName: string;
   photoCutoutUrl: string | null;
+  colors: { id: string; name: string; hex: string }[];
+  price: number | null;
+  currency: string;
 };
 
 type OutfitCanvasStore = {
@@ -56,6 +62,9 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
             nickname: item.nickname,
             categoryName: item.categoryName,
             photoCutoutUrl: item.photoCutoutUrl,
+            colors: item.colors,
+            price: item.price,
+            currency: item.currency,
           },
         ],
         nextZIndex: state.nextZIndex + 1,
@@ -93,6 +102,9 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
         nickname: oi.item.nickname,
         categoryName: oi.item.categoryName,
         photoCutoutUrl: oi.item.photoCutoutUrl,
+        colors: oi.item.colors,
+        price: oi.item.price,
+        currency: oi.item.currency,
       })),
       nextZIndex: Math.max(0, ...items.map((oi) => oi.zIndex)) + 1,
       isDirty: false,

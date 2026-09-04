@@ -63,6 +63,9 @@ function makeOutfit(overrides: Partial<Record<string, unknown>> = {}) {
         nickname: string | null;
         photoCutoutKey: string | null;
         category: { name: string };
+        colors: { color: { id: string; name: string; hex: string } }[];
+        price: number | null;
+        currency: string;
       };
     }[],
     tags: [] as { tag: { name: string } }[],
@@ -87,6 +90,9 @@ describe("toOutfitDto", () => {
             nickname: "Denim jacket",
             photoCutoutKey: "cutout.png",
             category: { name: "Jackets" },
+            colors: [{ color: { id: "color-1", name: "Blue", hex: "#2563EB" } }],
+            price: 89.99,
+            currency: "USD",
           },
         },
       ],
@@ -105,6 +111,9 @@ describe("toOutfitDto", () => {
           nickname: "Denim jacket",
           categoryName: "Jackets",
           photoCutoutUrl: "/items/item-1/photo/cutout",
+          colors: [{ id: "color-1", name: "Blue", hex: "#2563EB" }],
+          price: 89.99,
+          currency: "USD",
         },
       },
     ]);
@@ -118,7 +127,15 @@ describe("toOutfitDto", () => {
           x: 0,
           y: 0,
           zIndex: 1,
-          item: { id: "item-1", nickname: null, photoCutoutKey: null, category: { name: "Jackets" } },
+          item: {
+            id: "item-1",
+            nickname: null,
+            photoCutoutKey: null,
+            category: { name: "Jackets" },
+            colors: [],
+            price: null,
+            currency: "USD",
+          },
         },
       ],
     });
