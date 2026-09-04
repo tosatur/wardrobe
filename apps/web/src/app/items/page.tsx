@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArchiveIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { HoverReticle, type Rect } from "@/components/hover-reticle";
 import { EmptyState } from "@/components/empty-state";
 import { listBrands, listItems, listTags } from "@/lib/items-client";
 import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
+import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
 import { cn } from "@/lib/utils";
 
 function isViewMode(value: string | null): value is ViewMode {
@@ -51,7 +52,7 @@ export default function ItemsPage() {
 
 function ItemsPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useFrozenSearchParams("/items");
 
   const q = searchParams.get("q") ?? "";
   const categoryId = searchParams.get("categoryId") ?? "";

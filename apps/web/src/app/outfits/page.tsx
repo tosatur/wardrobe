@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { OutfitListRow } from "@/components/outfit-list-row";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
 import { EmptyState } from "@/components/empty-state";
 import { listOutfits } from "@/lib/outfits-client";
+import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
 
 function isOutfitViewMode(value: string | null): value is "grid" | "list" {
   return value === "grid" || value === "list";
@@ -26,7 +27,8 @@ export default function OutfitsPage() {
 
 function OutfitsPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useFrozenSearchParams("/outfits");
+
   const q = searchParams.get("q") ?? "";
   const rawView = searchParams.get("view");
   const view: ViewMode = isOutfitViewMode(rawView) ? rawView : "grid";
