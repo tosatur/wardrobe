@@ -22,7 +22,7 @@ export default function EditOutfitPage({ params }: { params: Promise<{ id: strin
 
   if (isPending) {
     return (
-      <main className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+      <main className="flex h-full flex-col lg:flex-row">
         <Skeleton className="h-48 w-full shrink-0 lg:h-full lg:w-72" />
         <Skeleton className="min-h-96 flex-1" />
         <Skeleton className="h-48 w-full shrink-0 lg:h-full lg:w-80" />
@@ -39,7 +39,7 @@ export default function EditOutfitPage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <main className="h-[calc(100vh-4rem)]">
+    <main className="h-full">
       <OutfitBuilder outfit={outfit} />
     </main>
   );

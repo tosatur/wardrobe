@@ -49,7 +49,7 @@ function NewOutfitPageContent() {
   }, [seedItemId, reset, addPlacement]);
 
   return (
-    <main className="h-[calc(100vh-4rem)]">
+    <main className="h-full">
       <OutfitBuilder />
     </main>
   );
