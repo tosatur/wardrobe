@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddItemEventDialog } from "@/components/add-item-event-dialog";
+import { QueryError } from "@/components/query-error";
 import { deleteItemEvent, listItemHistory } from "@/lib/items-client";
 
 const EVENT_ICON: Record<ItemEventType, typeof Droplets> = {
@@ -38,7 +39,12 @@ export function ItemHistoryTimeline({ itemId }: { itemId: string }) {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
 
-  const { data: entries, isPending } = useQuery({
+  const {
+    data: entries,
+    isError,
+    isPending,
+    refetch,
+  } = useQuery({
     queryKey: ["item-history", itemId],
     queryFn: () => listItemHistory(itemId),
   });
@@ -80,7 +86,9 @@ export function ItemHistoryTimeline({ itemId }: { itemId: string }) {
         </div>
       )}
 
-      {!isPending && entries?.length === 0 && (
+      {!isPending && isError && <QueryError onRetry={() => void refetch()} />}
+
+      {!isPending && !isError && entries?.length === 0 && (
         <p className="text-sm text-muted-foreground">No history yet.</p>
       )}
 
