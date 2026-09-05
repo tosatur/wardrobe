@@ -8,13 +8,17 @@ import type { ItemDto } from "@wardrobe/shared";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
 import { CategoryPicker } from "@/components/category-picker";
 import { ItemSortSelect } from "@/components/item-sort-select";
 import { API_URL } from "@/lib/auth-client";
 import { listItems } from "@/lib/items-client";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
 import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import { cn } from "@/lib/utils";
+
+const MASONRY_SKELETON_ASPECTS = ["aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[2/3]"];
 
 function PaletteTile({ item, disabled }: { item: ItemDto; disabled: boolean }) {
   const [tileWidth, setTileWidth] = useState<number | null>(null);
@@ -75,7 +79,12 @@ export function ItemPalette() {
   const [categoryId, setCategoryId] = useState<string>("");
   const [sort, setSort] = useState<ItemSortOrder>("newest");
 
-  const { data: items, isPending } = useQuery({
+  const {
+    data: items,
+    isError,
+    isPending: isItemsQueryPending,
+    refetch,
+  } = useQuery({
     queryKey: ["items", { photoStatus: "ready", q, categoryId }],
     queryFn: () =>
       listItems({
@@ -84,6 +93,7 @@ export function ItemPalette() {
         categoryId: categoryId || undefined,
       }),
   });
+  const isPending = useMinDurationPending(isItemsQueryPending);
 
   const placements = useOutfitCanvasStore((s) => s.placements);
   const placedIds = useMemo(() => new Set(placements.map((p) => p.itemId)), [placements]);
@@ -124,19 +134,27 @@ export function ItemPalette() {
       {isPending && (
         <div className="columns-2 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="mb-3 aspect-3/4 w-full break-inside-avoid" />
+            <Skeleton
+              key={i}
+              className={cn(
+                "mb-3 w-full break-inside-avoid",
+                MASONRY_SKELETON_ASPECTS[i % MASONRY_SKELETON_ASPECTS.length],
+              )}
+            />
           ))}
         </div>
       )}
 
-      {!isPending && sortedItems.length === 0 && (
+      {!isPending && isError && <QueryError onRetry={() => void refetch()} />}
+
+      {!isPending && !isError && sortedItems.length === 0 && (
         <EmptyState>
           {q || categoryId ? "No items match." : "No items with a processed photo yet."}
         </EmptyState>
       )}
 
-      {!isPending && sortedItems.length > 0 && (
-        <div className="columns-2 gap-3">
+      {!isPending && !isError && sortedItems.length > 0 && (
+        <div className="columns-2 gap-3 animate-in fade-in-0 duration-200 motion-reduce:animate-none">
           {sortedItems.map((item) => (
             <PaletteTile key={item.id} item={item} disabled={placedIds.has(item.id)} />
           ))}
