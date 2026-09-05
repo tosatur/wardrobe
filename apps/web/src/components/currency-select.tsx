@@ -38,7 +38,7 @@ export function CurrencySelect({
         alignItemWithTrigger={variant === "addon" ? false : undefined}
         className={
           variant === "addon"
-            ? "w-min min-w-[var(--radix-select-trigger-width)]"
+            ? "w-min min-w-(--radix-select-trigger-width)"
             : undefined
         }
       >
