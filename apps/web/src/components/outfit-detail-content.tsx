@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EntityToolbar } from "@/components/entity-toolbar";
 import { SectionEyebrow } from "@/components/section-eyebrow";
@@ -46,8 +48,15 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
   });
   const isPending = useMinDurationPending(isOutfitQueryPending);
 
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deletePending = useMinDurationPending(isDeleting);
+  const [isLoggingToday, setIsLoggingToday] = useState(false);
+  const loggingPending = useMinDurationPending(isLoggingToday);
+
   async function handleDelete() {
+    setIsDeleting(true);
     const { error } = await deleteOutfit(id);
+    setIsDeleting(false);
     if (error) {
       toast.error(error);
       return;
@@ -58,7 +67,9 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
   }
 
   async function handleLogToday() {
+    setIsLoggingToday(true);
     const { error } = await logWear(id);
+    setIsLoggingToday(false);
     if (error) {
       toast.error(error);
       return;
@@ -125,11 +136,12 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
                     variant="outline"
                     size="icon"
                     aria-label="Log today"
+                    disabled={loggingPending}
                     onClick={() => void handleLogToday()}
                   />
                 }
               >
-                <CalendarPlusIcon />
+                {loggingPending ? <Spinner /> : <CalendarPlusIcon />}
               </TooltipTrigger>
               <TooltipContent>Log today</TooltipContent>
             </Tooltip>
@@ -169,8 +181,13 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={() => void handleDelete()}>
-                    Delete
+                  <AlertDialogAction
+                    variant="destructive"
+                    disabled={deletePending}
+                    onClick={() => void handleDelete()}
+                  >
+                    {deletePending && <Spinner data-icon="inline-start" />}
+                    {deletePending ? "Deleting…" : "Delete"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

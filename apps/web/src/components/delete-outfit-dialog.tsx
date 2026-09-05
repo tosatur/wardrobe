@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -12,6 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import { deleteOutfit } from "@/lib/outfits-client";
 
 export function DeleteOutfitDialog({
@@ -26,9 +29,13 @@ export function DeleteOutfitDialog({
   onDeleted?: () => void;
 }) {
   const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const pending = useMinDurationPending(isDeleting);
 
   async function handleDelete() {
+    setIsDeleting(true);
     const { error } = await deleteOutfit(outfitId);
+    setIsDeleting(false);
     if (error) {
       toast.error(error);
       return;
@@ -50,8 +57,9 @@ export function DeleteOutfitDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={() => void handleDelete()}>
-            Delete
+          <AlertDialogAction variant="destructive" disabled={pending} onClick={() => void handleDelete()}>
+            {pending && <Spinner data-icon="inline-start" />}
+            {pending ? "Deleting…" : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

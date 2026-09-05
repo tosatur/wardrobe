@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EntityToolbar } from "@/components/entity-toolbar";
 import { SectionEyebrow } from "@/components/section-eyebrow";
@@ -28,6 +29,8 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
   const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const archivingPending = useMinDurationPending(isArchiving);
 
   const {
     data: item,
@@ -43,8 +46,10 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
 
   async function handleToggleArchived() {
     if (!item) return;
+    setIsArchiving(true);
     const nextStatus = item.status === "archived" ? "active" : "archived";
     const { error } = await updateItem(id, { status: nextStatus });
+    setIsArchiving(false);
     if (error) {
       toast.error(error);
       return;
@@ -127,11 +132,18 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
                     variant="outline"
                     size="icon"
                     aria-label={item.status === "archived" ? "Unarchive item" : "Archive item"}
+                    disabled={archivingPending}
                     onClick={() => void handleToggleArchived()}
                   />
                 }
               >
-                {item.status === "archived" ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
+                {archivingPending ? (
+                  <Spinner />
+                ) : item.status === "archived" ? (
+                  <ArchiveRestoreIcon />
+                ) : (
+                  <ArchiveIcon />
+                )}
               </TooltipTrigger>
               <TooltipContent>
                 {item.status === "archived" ? "Unarchive item" : "Archive item"}

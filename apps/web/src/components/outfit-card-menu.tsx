@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteOutfitDialog } from "@/components/delete-outfit-dialog";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import { logWear } from "@/lib/outfits-client";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +32,13 @@ export function OutfitCardMenu({
 }) {
   const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isLoggingToday, setIsLoggingToday] = useState(false);
+  const loggingPending = useMinDurationPending(isLoggingToday);
 
   async function handleLogToday() {
+    setIsLoggingToday(true);
     const { error } = await logWear(outfit.id);
+    setIsLoggingToday(false);
     if (error) {
       toast.error(error);
       return;
@@ -71,7 +76,9 @@ export function OutfitCardMenu({
           <DropdownMenuItem render={<Link href={`/outfits/${outfit.id}/edit`} />}>
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => void handleLogToday()}>Log today</DropdownMenuItem>
+          <DropdownMenuItem disabled={loggingPending} onClick={() => void handleLogToday()}>
+            {loggingPending ? "Logging…" : "Log today"}
+          </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             Delete
           </DropdownMenuItem>

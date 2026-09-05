@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import { updateItem } from "@/lib/items-client";
 import { cn } from "@/lib/utils";
 
@@ -25,10 +26,14 @@ import { cn } from "@/lib/utils";
 export function ItemCardMenu({ item, triggerClassName }: { item: ItemDto; triggerClassName?: string }) {
   const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const archivingPending = useMinDurationPending(isArchiving);
 
   async function handleToggleArchived() {
+    setIsArchiving(true);
     const nextStatus = item.status === "archived" ? "active" : "archived";
     const { error } = await updateItem(item.id, { status: nextStatus });
+    setIsArchiving(false);
     if (error) {
       toast.error(error);
       return;
@@ -73,8 +78,14 @@ export function ItemCardMenu({ item, triggerClassName }: { item: ItemDto; trigge
               Use in new outfit
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onClick={() => void handleToggleArchived()}>
-            {item.status === "archived" ? "Unarchive" : "Archive"}
+          <DropdownMenuItem disabled={archivingPending} onClick={() => void handleToggleArchived()}>
+            {archivingPending
+              ? item.status === "archived"
+                ? "Unarchiving…"
+                : "Archiving…"
+              : item.status === "archived"
+                ? "Unarchive"
+                : "Archive"}
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             Delete
