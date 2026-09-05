@@ -4,10 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ItemForm } from "@/components/item-form";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
 import { getItem } from "@/lib/items-client";
 
 export function ItemEditContent({ id, backHref }: { id: string; backHref?: string }) {
-  const { data: item, isPending } = useQuery({
+  const {
+    data: item,
+    isError,
+    isPending,
+    refetch,
+  } = useQuery({
     queryKey: ["item", id],
     queryFn: () => getItem(id),
     refetchInterval: (query) => (query.state.data?.photoStatus === "processing" ? 2000 : false),
@@ -30,6 +36,10 @@ export function ItemEditContent({ id, backHref }: { id: string; backHref?: strin
         </div>
       </div>
     );
+  }
+
+  if (isError) {
+    return <QueryError onRetry={() => void refetch()} className="py-12" />;
   }
 
   if (!item) {
