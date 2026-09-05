@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ItemCreateSchema, ItemUpdateSchema, type ItemDto, type ItemVisibility } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -31,6 +32,7 @@ import { CurrencySelect } from "@/components/currency-select";
 import { createItem, updateItem, uploadItemPhoto, type ItemPayload } from "@/lib/items-client";
 import { getSession } from "@/lib/auth-client";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { SaveIcon } from "lucide-react";
 
 type ItemFormValues = {
   nickname: string;
@@ -180,7 +182,8 @@ export function ItemForm({ item, backHref }: { item?: ItemDto; backHref?: string
         title={mode === "create" ? "Add an item" : "Edit item"}
         actions={
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : mode === "create" ? "Create item" : "Save changes"}
+            {isSubmitting ? <Spinner data-icon="inline-start" /> : <SaveIcon />}
+            {isSubmitting ? "Saving…" : "Save"}
           </Button>
         }
       />
