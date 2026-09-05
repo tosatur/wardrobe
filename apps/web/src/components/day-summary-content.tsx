@@ -8,6 +8,7 @@ import { parseDateKey, toDateKey } from "@/lib/date";
 import { weatherIcon, weatherLabel } from "@/lib/weather";
 import { OutfitCanvas } from "@/components/outfit-canvas";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EntityToolbar } from "@/components/entity-toolbar";
 
@@ -35,7 +36,12 @@ export function DaySummaryContent({ date, backHref }: { date: string; backHref?:
   const start = toDateKey(queryStart);
   const end = toDateKey(queryEnd);
 
-  const { data: wears, isPending: wearsPending } = useQuery({
+  const {
+    data: wears,
+    isError: wearsError,
+    isPending: wearsPending,
+    refetch: refetchWears,
+  } = useQuery({
     queryKey: ["wears", start, end],
     queryFn: () => listWears({ start, end }),
   });
@@ -58,6 +64,8 @@ export function DaySummaryContent({ date, backHref }: { date: string; backHref?:
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-14 w-full" />
         </div>
+      ) : wearsError ? (
+        <QueryError onRetry={() => void refetchWears()} className="py-8" />
       ) : (
         <div className="space-y-6">
           {weather && Icon && (
