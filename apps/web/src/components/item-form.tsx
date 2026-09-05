@@ -18,6 +18,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { SectionEyebrow } from "@/components/section-eyebrow";
+import { EntityToolbar } from "@/components/entity-toolbar";
 import { TagPicker } from "@/components/tag-picker";
 import { PhotoUpload } from "@/components/photo-upload";
 import { PhotoPicker } from "@/components/photo-picker";
@@ -80,7 +81,7 @@ function toPayload(values: ItemFormValues): ItemPayload {
   };
 }
 
-export function ItemForm({ item }: { item?: ItemDto }) {
+export function ItemForm({ item, backHref }: { item?: ItemDto; backHref?: string }) {
   const router = useRouter();
   const mode = item ? "edit" : "create";
   const {
@@ -172,171 +173,186 @@ export function ItemForm({ item }: { item?: ItemDto }) {
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
-      {/* Row 1: the photo paired with just enough fields (Identity + Details)
-          to roughly match its height, a photo alone against the full field
-          list left a dead gap once the list ran taller than a square photo. */}
-      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
-        <div>
-          {item ? (
-            <PhotoUpload
-              itemId={item.id}
-              currentPhotoUrl={item.photoUrl}
-              currentPhotoCutoutUrl={item.photoCutoutUrl}
-              photoStatus={item.photoStatus}
-              onUploaded={() => router.refresh()}
-            />
-          ) : (
-            <PhotoPicker
-              previewUrl={photoPreviewUrl}
-              hasFile={!!photoFile}
-              onSelect={handlePhotoSelect}
-            />
-          )}
-        </div>
+    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-8">
+      <EntityToolbar
+        backHref={backHref}
+        backLabel="Back to closet"
+        title={mode === "create" ? "Add an item" : "Edit item"}
+        actions={
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving…" : mode === "create" ? "Create item" : "Save changes"}
+          </Button>
+        }
+      />
 
-        <div className="flex flex-col gap-6">
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="nickname">Nickname</FieldLabel>
-              <Input
-                id="nickname"
-                placeholder="e.g. Rainy day jacket"
-                className="text-base font-medium md:text-base"
-                {...register("nickname")}
+      <div className="flex flex-col gap-8 px-6 pb-6">
+        {mode === "create" && (
+          <p className="-mt-4 text-sm text-muted-foreground">
+            Fill in what you know. You can always come back and add more.
+          </p>
+        )}
+
+        {/* Row 1: the photo paired with just enough fields (Identity + Details)
+            to roughly match its height, a photo alone against the full field
+            list left a dead gap once the list ran taller than a square photo. */}
+        <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
+          <div>
+            {item ? (
+              <PhotoUpload
+                itemId={item.id}
+                currentPhotoUrl={item.photoUrl}
+                currentPhotoCutoutUrl={item.photoCutoutUrl}
+                photoStatus={item.photoStatus}
+                onUploaded={() => router.refresh()}
               />
-            </Field>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="categoryId">Category</FieldLabel>
-                <CategoryPicker
-                  value={categoryId}
-                  onChange={(id) => setValue("categoryId", id)}
-                />
-                {errors.categoryId && (
-                  <FieldError>{errors.categoryId.message ?? "Required."}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="brandName">Brand</FieldLabel>
-                <BrandPicker
-                  value={brandName || null}
-                  onChange={(name) => setValue("brandName", name)}
-                />
-              </Field>
-            </div>
-          </FieldGroup>
-
-          <div className="flex flex-col gap-4">
-            <SectionEyebrow>Details</SectionEyebrow>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="size">Size</FieldLabel>
-                <Input id="size" {...register("size")} />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="materialIds">Materials</FieldLabel>
-                <MaterialPicker
-                  values={materialIds}
-                  onChange={(next) => setValue("materialIds", next)}
-                />
-              </Field>
-            </div>
-            <Field>
-              <FieldLabel htmlFor="colorIds">Colors</FieldLabel>
-              <ColorPicker values={colorIds} onChange={(next) => setValue("colorIds", next)} />
-              {errors.colorIds && <FieldError>{errors.colorIds.message}</FieldError>}
-            </Field>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2: the rest, full width, no reason to keep squeezing these
-          into a narrow column once the photo's height is behind us. */}
-      <div className="mt-10 grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-2">
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-4">
-            <SectionEyebrow>Organize</SectionEyebrow>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_9rem]">
-              <Field>
-                <FieldLabel htmlFor="tags">Tags</FieldLabel>
-                <TagPicker values={tags} onChange={(next) => setValue("tags", next)} max={20} />
-                {errors.tags && <FieldError>{errors.tags.message}</FieldError>}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="visibility">Visibility</FieldLabel>
-                <Select
-                  value={visibility}
-                  onValueChange={(v) => setValue("visibility", v as ItemVisibility)}
-                >
-                  <SelectTrigger id="visibility" className="w-full">
-                    <SelectValue>
-                      {(v: ItemVisibility) => (v === "public" ? "Public" : "Private")}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="public">Public</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
+            ) : (
+              <PhotoPicker
+                previewUrl={photoPreviewUrl}
+                hasFile={!!photoFile}
+                onSelect={handlePhotoSelect}
+              />
+            )}
           </div>
 
-          <div className="flex flex-col gap-4">
-            <SectionEyebrow>Provenance</SectionEyebrow>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-6">
+            <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="purchaseDate">Purchase date</FieldLabel>
-                <DatePicker
-                  id="purchaseDate"
-                  value={purchaseDate}
-                  onChange={(next) => setValue("purchaseDate", next)}
+                <FieldLabel htmlFor="nickname">Nickname</FieldLabel>
+                <Input
+                  id="nickname"
+                  placeholder="e.g. Rainy day jacket"
+                  className="text-base font-medium md:text-base"
+                  {...register("nickname")}
                 />
               </Field>
-              <Field>
-                <FieldLabel htmlFor="price">Price</FieldLabel>
-                <InputGroup>
-                  <InputGroupAddon className="pr-0">
-                    <CurrencySelect
-                      value={currency}
-                      onChange={(next) => setValue("currency", next)}
-                      triggerClassName="h-6 gap-1 border-0 bg-transparent px-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
-                    />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    {...register("price")}
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="categoryId">Category</FieldLabel>
+                  <CategoryPicker
+                    value={categoryId}
+                    onChange={(id) => setValue("categoryId", id)}
                   />
-                </InputGroup>
-                {errors.price && <FieldError>{errors.price.message}</FieldError>}
+                  {errors.categoryId && (
+                    <FieldError>{errors.categoryId.message ?? "Required."}</FieldError>
+                  )}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="brandName">Brand</FieldLabel>
+                  <BrandPicker
+                    value={brandName || null}
+                    onChange={(name) => setValue("brandName", name)}
+                  />
+                </Field>
+              </div>
+            </FieldGroup>
+
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Details</SectionEyebrow>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="size">Size</FieldLabel>
+                  <Input id="size" {...register("size")} />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="materialIds">Materials</FieldLabel>
+                  <MaterialPicker
+                    values={materialIds}
+                    onChange={(next) => setValue("materialIds", next)}
+                  />
+                </Field>
+              </div>
+              <Field>
+                <FieldLabel htmlFor="colorIds">Colors</FieldLabel>
+                <ColorPicker values={colorIds} onChange={(next) => setValue("colorIds", next)} />
+                {errors.colorIds && <FieldError>{errors.colorIds.message}</FieldError>}
               </Field>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <SectionEyebrow>Notes</SectionEyebrow>
-          <Field>
-            <Textarea
-              id="notes"
-              placeholder="Fit, care, anything worth remembering…"
-              className="min-h-32"
-              {...register("notes")}
-            />
-            {errors.notes && <FieldError>{errors.notes.message}</FieldError>}
-          </Field>
+        {/* Row 2: the rest, full width, no reason to keep squeezing these
+            into a narrow column once the photo's height is behind us. */}
+        <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-2">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Organize</SectionEyebrow>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_9rem]">
+                <Field>
+                  <FieldLabel htmlFor="tags">Tags</FieldLabel>
+                  <TagPicker values={tags} onChange={(next) => setValue("tags", next)} max={20} />
+                  {errors.tags && <FieldError>{errors.tags.message}</FieldError>}
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="visibility">Visibility</FieldLabel>
+                  <Select
+                    value={visibility}
+                    onValueChange={(v) => setValue("visibility", v as ItemVisibility)}
+                  >
+                    <SelectTrigger id="visibility" className="w-full">
+                      <SelectValue>
+                        {(v: ItemVisibility) => (v === "public" ? "Public" : "Private")}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="public">Public</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Provenance</SectionEyebrow>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="purchaseDate">Purchase date</FieldLabel>
+                  <DatePicker
+                    id="purchaseDate"
+                    value={purchaseDate}
+                    onChange={(next) => setValue("purchaseDate", next)}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="price">Price</FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon className="pr-0">
+                      <CurrencySelect
+                        value={currency}
+                        onChange={(next) => setValue("currency", next)}
+                        triggerClassName="h-6 gap-1 border-0 bg-transparent px-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                      />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register("price")}
+                    />
+                  </InputGroup>
+                  {errors.price && <FieldError>{errors.price.message}</FieldError>}
+                </Field>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <SectionEyebrow>Notes</SectionEyebrow>
+            <Field>
+              <Textarea
+                id="notes"
+                placeholder="Fit, care, anything worth remembering…"
+                className="min-h-32"
+                {...register("notes")}
+              />
+              {errors.notes && <FieldError>{errors.notes.message}</FieldError>}
+            </Field>
+          </div>
         </div>
       </div>
-
-      <Button type="submit" disabled={isSubmitting} className="mt-8 w-full sm:w-auto">
-        {isSubmitting ? "Saving…" : mode === "create" ? "Create item" : "Save changes"}
-      </Button>
     </form>
   );
 }

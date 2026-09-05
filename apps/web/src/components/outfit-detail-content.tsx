@@ -8,9 +8,10 @@ import { CalendarPlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { EntityToolbar } from "@/components/entity-toolbar";
 import { StarRating } from "@/components/star-rating";
 import {
   AlertDialog,
@@ -28,7 +29,7 @@ import { OutfitAnalysis } from "@/components/outfit-analysis";
 import { EmptyState } from "@/components/empty-state";
 import { deleteOutfit, getOutfit, logWear } from "@/lib/outfits-client";
 
-export function OutfitDetailContent({ id }: { id: string }) {
+export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -62,12 +63,14 @@ export function OutfitDetailContent({ id }: { id: string }) {
 
   if (isPending) {
     return (
-      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[7fr_5fr]">
-        <Skeleton className="aspect-square w-full" />
-        <div className="space-y-6">
-          <Skeleton className="h-6 w-2/3" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
+      <div className="flex flex-col gap-8">
+        <Skeleton className="h-14 w-full" />
+        <div className="grid grid-cols-1 gap-x-10 gap-y-8 px-6 lg:grid-cols-[7fr_5fr]">
+          <Skeleton className="aspect-square w-full" />
+          <div className="space-y-6">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
         </div>
       </div>
     );
@@ -78,12 +81,12 @@ export function OutfitDetailContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[7fr_5fr]">
-      <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
-
-      <Card className="h-fit">
-        <CardHeader className="flex flex-row items-start justify-between">
-          <CardTitle>{outfit.name}</CardTitle>
+    <div className="flex flex-col gap-8">
+      <EntityToolbar
+        backHref={backHref}
+        backLabel="Back to outfits"
+        title={outfit.name}
+        actions={
           <ButtonGroup>
             <Tooltip>
               <TooltipTrigger
@@ -143,52 +146,59 @@ export function OutfitDetailContent({ id }: { id: string }) {
               </AlertDialogContent>
             </AlertDialog>
           </ButtonGroup>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {outfit.description && <p className="text-sm">{outfit.description}</p>}
+        }
+      />
 
-          {outfit.rating != null && (
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Rating</p>
-              <StarRating value={outfit.rating} readOnly />
-            </div>
-          )}
+      <div className="grid grid-cols-1 gap-x-10 gap-y-8 px-6 pb-6 lg:grid-cols-[7fr_5fr]">
+        <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
 
-          {outfit.tags.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Tags</p>
-              <div className="flex flex-wrap gap-1">
-                {outfit.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
+        <Card className="h-fit">
+          <CardContent className="space-y-6">
+            {outfit.description && <p className="text-sm">{outfit.description}</p>}
+
+            {outfit.rating != null && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Rating</p>
+                <StarRating value={outfit.rating} readOnly />
               </div>
-            </div>
-          )}
+            )}
 
-          {outfit.wornDates.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                Worn {outfit.wornDates.length} {outfit.wornDates.length === 1 ? "time" : "times"}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {outfit.wornDates.map((w) => (
-                  <Badge key={w.id} variant="outline">
-                    {new Date(w.date).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </Badge>
-                ))}
+            {outfit.tags.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Tags</p>
+                <div className="flex flex-wrap gap-1">
+                  {outfit.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <OutfitAnalysis items={outfit.items.map((oi) => oi.item)} />
-        </CardContent>
-      </Card>
+            {outfit.wornDates.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  Worn {outfit.wornDates.length} {outfit.wornDates.length === 1 ? "time" : "times"}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {outfit.wornDates.map((w) => (
+                    <Badge key={w.id} variant="outline">
+                      {new Date(w.date).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <OutfitAnalysis items={outfit.items.map((oi) => oi.item)} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

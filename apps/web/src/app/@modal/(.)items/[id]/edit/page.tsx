@@ -8,7 +8,7 @@ export default function InterceptedEditItemPage({ params }: { params: Promise<{ 
   const { id } = use(params);
 
   return (
-    <RouteModal title="Edit item">
+    <RouteModal title="Edit item" hideHeader>
       <ItemEditContent id={id} />
     </RouteModal>
   );

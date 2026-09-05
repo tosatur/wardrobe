@@ -8,7 +8,7 @@ export default function OutfitDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <OutfitDetailContent id={id} />
+      <OutfitDetailContent id={id} backHref="/outfits" />
     </main>
   );
 }
