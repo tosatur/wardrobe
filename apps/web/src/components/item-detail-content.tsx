@@ -19,6 +19,8 @@ import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
 import { API_URL } from "@/lib/auth-client";
 import { getItem, updateItem } from "@/lib/items-client";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import { currencySymbol } from "@wardrobe/shared";
 
 export function ItemDetailContent({ id, backHref }: { id: string; backHref?: string }) {
@@ -27,11 +29,17 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
 
-  const { data: item, isPending } = useQuery({
+  const {
+    data: item,
+    isError,
+    isPending: isItemQueryPending,
+    refetch,
+  } = useQuery({
     queryKey: ["item", id],
     queryFn: () => getItem(id),
     refetchInterval: (query) => (query.state.data?.photoStatus === "processing" ? 2000 : false),
   });
+  const isPending = useMinDurationPending(isItemQueryPending);
 
   async function handleToggleArchived() {
     if (!item) return;
@@ -66,6 +74,10 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
     );
   }
 
+  if (isError) {
+    return <QueryError onRetry={() => void refetch()} className="py-12" />;
+  }
+
   if (!item) {
     return <EmptyState className="py-12 text-center">Item not found.</EmptyState>;
   }
@@ -73,7 +85,7 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
   const stats = item.stats;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 animate-in fade-in-0 duration-200 motion-reduce:animate-none">
       <EntityToolbar
         backHref={backHref}
         backLabel="Back to closet"
