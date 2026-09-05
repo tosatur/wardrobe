@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { ArchiveIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +19,17 @@ import { ViewToggle, type ViewMode } from "@/components/view-toggle";
 import { HoverReticle } from "@/components/hover-reticle";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
 import { listBrands, listItems, listTags } from "@/lib/items-client";
 import { sortItems, type ItemSortOrder } from "@/lib/sort-items";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
 import { useHoverReticle } from "@/hooks/use-hover-reticle";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import { cn } from "@/lib/utils";
+
+// Cycled across the masonry skeleton so its placeholder tiles vary in
+// height like real masonry columns do, instead of one uniform tile size.
+const MASONRY_SKELETON_ASPECTS = ["aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[2/3]"];
 
 function isViewMode(value: string | null): value is ViewMode {
   return value === "masonry" || value === "grid" || value === "list";
@@ -64,11 +71,24 @@ function ItemsPageContent() {
     updateParam(key, values.join(","));
   }
 
-  const { data: items, isPending } = useQuery({
+  const {
+    data: items,
+    error: itemsError,
+    isPending: isItemsQueryPending,
+    isFetching: isItemsFetching,
+    refetch: refetchItems,
+  } = useQuery({
     queryKey: ["items", { q, categoryIds, brandIds, tags: selectedTags }],
     queryFn: () => listItems({ q, categoryIds, brandIds, tags: selectedTags }),
+    placeholderData: keepPreviousData,
   });
+  const isPending = useMinDurationPending(isItemsQueryPending);
   const sortedItems = sortItems(items ?? [], sort);
+
+  useEffect(() => {
+    if (itemsError && items) toast.error("Couldn't refresh results.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-fire when the error identity changes, not on every items update, so a lingering stale error doesn't re-toast on each successful background refetch
+  }, [itemsError]);
 
   const { data: tags } = useQuery({ queryKey: ["tags"], queryFn: listTags });
   const { data: brands } = useQuery({ queryKey: ["brands"], queryFn: listBrands });
@@ -148,9 +168,15 @@ function ItemsPageContent() {
       </div>
 
       {isPending && view === "list" && (
-        <div className="glass divide-y divide-border p-3">
+        <div className="glass p-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="my-2 h-12 w-full" />
+            <div key={i} className="flex items-center gap-3 border-b border-border py-2 last:border-b-0">
+              <Skeleton className="size-12 shrink-0 rounded-sm" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -167,18 +193,33 @@ function ItemsPageContent() {
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton
               key={i}
-              className={cn("aspect-3/4 w-full", view === "masonry" && "mb-4 break-inside-avoid")}
+              className={cn(
+                "w-full",
+                view === "masonry"
+                  ? MASONRY_SKELETON_ASPECTS[i % MASONRY_SKELETON_ASPECTS.length]
+                  : "aspect-3/4",
+                view === "masonry" && "mb-4 break-inside-avoid",
+              )}
             />
           ))}
         </div>
       )}
 
-      {!isPending && sortedItems.length === 0 && (
+      {!isPending && itemsError && !items && (
+        <QueryError onRetry={() => void refetchItems()} className="py-12" />
+      )}
+
+      {!isPending && (!itemsError || items) && sortedItems.length === 0 && (
         <EmptyState>No items match your filters.</EmptyState>
       )}
 
-      {!isPending && sortedItems.length > 0 && view === "list" && (
-        <div className="glass p-3">
+      {!isPending && (!itemsError || items) && sortedItems.length > 0 && view === "list" && (
+        <div
+          className={cn(
+            "glass p-3 animate-in fade-in-0 duration-200 motion-reduce:animate-none",
+            isItemsFetching && "opacity-60 transition-opacity motion-reduce:transition-none",
+          )}
+        >
           {sortedItems.map((item) => (
             <ItemListRow key={item.id} item={item} />
           ))}
@@ -189,12 +230,14 @@ function ItemsPageContent() {
           column and wrap, sized to their own photo's aspect ratio rather
           than a shared row height. A real grid for "grid": every cell the
           same size. */}
-      {!isPending && sortedItems.length > 0 && view !== "list" && (
+      {!isPending && (!itemsError || items) && sortedItems.length > 0 && view !== "list" && (
         <div
           className={cn(
             view === "masonry"
               ? "columns-2 gap-4 sm:columns-3 md:columns-4"
               : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4",
+            "animate-in fade-in-0 duration-200 motion-reduce:animate-none",
+            isItemsFetching && "opacity-60 transition-opacity motion-reduce:transition-none",
           )}
         >
           {sortedItems.map((item) => (
