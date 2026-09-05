@@ -13,8 +13,7 @@ const DEFAULT_MIN_MS = 400;
  */
 export function useMinDurationPending(isPending: boolean, minMs: number = DEFAULT_MIN_MS): boolean {
   const [heldPending, setHeldPending] = useState(isPending);
-  // eslint-disable-next-line react-hooks/purity -- useRef initializer only runs once at mount, safe to call Date.now()
-  const pendingSinceRef = useRef<number | null>(isPending ? Date.now() : null);
+  const pendingSinceRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isPending) {
