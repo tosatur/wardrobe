@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { SectionEyebrow } from "@/components/section-eyebrow";
 import { EntityToolbar } from "@/components/entity-toolbar";
 import { TagPicker } from "@/components/tag-picker";
@@ -307,22 +307,20 @@ export function ItemForm({ item, backHref }: { item?: ItemDto; backHref?: string
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="price">Price</FieldLabel>
-                  <InputGroup>
-                    <InputGroupAddon className="pr-0">
-                      <CurrencySelect
-                        value={currency}
-                        onChange={(next) => setValue("currency", next)}
-                        triggerClassName="h-6 gap-1 border-0 bg-transparent px-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
-                      />
-                    </InputGroupAddon>
-                    <InputGroupInput
+                  <ButtonGroup>
+                    <CurrencySelect
+                      value={currency}
+                      onChange={(next) => setValue("currency", next)}
+                      variant="addon"
+                    />
+                    <Input
                       id="price"
                       type="number"
                       step="0.01"
                       min="0"
                       {...register("price")}
                     />
-                  </InputGroup>
+                  </ButtonGroup>
                   {errors.price && <FieldError>{errors.price.message}</FieldError>}
                 </Field>
               </div>

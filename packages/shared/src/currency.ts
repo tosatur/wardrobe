@@ -50,3 +50,20 @@ export const CURRENCIES: { code: CurrencyCode; symbol: string; label: string }[]
 export function currencySymbol(code: string): string {
   return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
 }
+
+/**
+ * The bare symbol as actually used within the currency's own country
+ * (e.g. "$" for AUD, not the "A$" disambiguated form from `currencySymbol`).
+ */
+export function currencyNarrowSymbol(code: string): string {
+  try {
+    const parts = new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: code,
+      currencyDisplay: "narrowSymbol",
+    }).formatToParts(0);
+    return parts.find((part) => part.type === "currency")?.value ?? currencySymbol(code);
+  } catch {
+    return currencySymbol(code);
+  }
+}

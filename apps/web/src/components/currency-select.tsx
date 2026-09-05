@@ -1,6 +1,6 @@
 "use client";
 
-import { CURRENCIES, type CurrencyCode } from "@wardrobe/shared";
+import { CURRENCIES, currencyNarrowSymbol, type CurrencyCode } from "@wardrobe/shared";
 import {
   Select,
   SelectContent,
@@ -8,26 +8,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 export function CurrencySelect({
   value,
   onChange,
   id,
-  triggerClassName,
+  variant = "default",
 }: {
   value: string;
   onChange: (value: string) => void;
   id?: string;
-  /** Override the trigger's own styling, e.g. to blend into an InputGroup. */
-  triggerClassName?: string;
+  /** "addon" renders a compact, symbol-only trigger for pairing with an Input in a ButtonGroup. */
+  variant?: "default" | "addon";
 }) {
   return (
     <Select value={value} onValueChange={(next) => next && onChange(next)}>
-      <SelectTrigger id={id} className={cn("w-full", triggerClassName)}>
-        <SelectValue>{(code: CurrencyCode) => code}</SelectValue>
+      <SelectTrigger
+        id={id}
+        className={variant === "addon" ? "min-w-14 justify-center" : "w-full"}
+      >
+        {variant === "addon" ? (
+          currencyNarrowSymbol(value)
+        ) : (
+          <SelectValue>{(code: CurrencyCode) => code}</SelectValue>
+        )}
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent
+        align={variant === "addon" ? "start" : undefined}
+        alignItemWithTrigger={variant === "addon" ? false : undefined}
+        className={
+          variant === "addon"
+            ? "w-min min-w-[var(--radix-select-trigger-width)]"
+            : undefined
+        }
+      >
         {CURRENCIES.map((currency) => (
           <SelectItem key={currency.code} value={currency.code}>
             {currency.code} · {currency.label}
