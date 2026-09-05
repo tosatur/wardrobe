@@ -76,10 +76,11 @@ export function Combobox({
 
   const trimmed = query.trim();
   const exactMatch = options.some((o) => normalize(o.label) === normalize(trimmed));
+  const baseItems = !showAllBeforeSearch && trimmed === "" ? [] : options;
   const itemsForView: CreatableOption[] =
     allowCreate && trimmed !== "" && !exactMatch
-      ? [...options, { value: `__create__${trimmed}`, label: `Create "${trimmed}"`, creatable: trimmed }]
-      : options;
+      ? [...baseItems, { value: `__create__${trimmed}`, label: `Create "${trimmed}"`, creatable: trimmed }]
+      : baseItems;
 
   return (
     <ComboboxRoot<CreatableOption>
@@ -87,7 +88,8 @@ export function Combobox({
       value={selected}
       onValueChange={(next) => {
         if (!next) return;
-        onChange(next.creatable ?? next.value);
+        const nextValue = next.creatable ?? next.value;
+        onChange(nextValue === value ? "" : nextValue);
       }}
       itemToStringLabel={(item) => item.label}
       itemToStringValue={(item) => item.value}
@@ -149,10 +151,11 @@ export function MultiCombobox({
   const trimmed = query.trim();
   const exactMatch = options.some((o) => normalize(o.label) === normalize(trimmed));
   const alreadySelected = values.some((v) => normalize(v) === normalize(trimmed));
+  const baseItems = !showAllBeforeSearch && trimmed === "" ? [] : options;
   const itemsForView: CreatableOption[] =
     allowCreate && trimmed !== "" && !exactMatch && !alreadySelected
-      ? [...options, { value: trimmed, label: `Create "${trimmed}"`, creatable: trimmed }]
-      : options;
+      ? [...baseItems, { value: trimmed, label: `Create "${trimmed}"`, creatable: trimmed }]
+      : baseItems;
 
   return (
     <ComboboxRoot<CreatableOption, true>
