@@ -95,7 +95,7 @@ function ItemsPageContent() {
                     type="button"
                     variant="outline"
                     size="icon"
-                    aria-label="Archived items"
+                    aria-label="View archive"
                     // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
                     onClick={() => (window.location.href = "/items/archive")}
                   />
@@ -103,7 +103,7 @@ function ItemsPageContent() {
               >
                 <ArchiveIcon />
               </TooltipTrigger>
-              <TooltipContent>Archived items</TooltipContent>
+              <TooltipContent>View archive</TooltipContent>
             </Tooltip>
             <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
             <Button render={<Link href="/items/new" />}>+ Add item</Button>
