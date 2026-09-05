@@ -13,6 +13,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { EntityToolbar } from "@/components/entity-toolbar";
 import { SectionEyebrow } from "@/components/section-eyebrow";
 import { StarRating } from "@/components/star-rating";
+import { QueryError } from "@/components/query-error";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +35,16 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: outfit, isPending } = useQuery({
+  const {
+    data: outfit,
+    isError,
+    isPending: isOutfitQueryPending,
+    refetch,
+  } = useQuery({
     queryKey: ["outfit", id],
     queryFn: () => getOutfit(id),
   });
+  const isPending = useMinDurationPending(isOutfitQueryPending);
 
   async function handleDelete() {
     const { error } = await deleteOutfit(id);
@@ -67,13 +75,35 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
         <Skeleton className="h-14 w-full" />
         <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
           <Skeleton className="aspect-square w-full" />
-          <div className="space-y-6">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
+          <div className="flex flex-col gap-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-28" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-12" />
+              <div className="flex gap-1">
+                <Skeleton className="h-5 w-16 rounded-sm" />
+                <Skeleton className="h-5 w-14 rounded-sm" />
+                <Skeleton className="h-5 w-20 rounded-sm" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-24 w-full" />
+            </div>
           </div>
         </div>
       </div>
     );
+  }
+
+  if (isError) {
+    return <QueryError onRetry={() => void refetch()} className="py-12" />;
   }
 
   if (!outfit) {
@@ -81,7 +111,7 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 animate-in fade-in-0 duration-200 motion-reduce:animate-none">
       <EntityToolbar
         backHref={backHref}
         backLabel="Back to outfits"
