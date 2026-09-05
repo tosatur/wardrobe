@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUnsavedChangesStore } from "@/lib/unsaved-changes-store";
+import { DETAIL_SURFACE_CLASS } from "@/lib/detail-surface";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,12 +41,14 @@ export function RouteModal({
   title,
   description,
   hideHeader,
+  showCloseButton = true,
   children,
   className,
 }: {
   title: string;
   description?: string;
   hideHeader?: boolean;
+  showCloseButton?: boolean;
   children: ReactNode;
   className?: string;
 }) {
@@ -87,7 +90,10 @@ export function RouteModal({
           if (!open) router.back();
         }}
       >
-        <DialogContent className={cn("max-h-[85vh] overflow-y-auto sm:max-w-3xl lg:max-w-5xl", className)}>
+        <DialogContent
+          showCloseButton={showCloseButton}
+          className={cn(DETAIL_SURFACE_CLASS, "max-h-[85vh] overflow-y-auto", className)}
+        >
           <DialogHeader className={hideHeader ? "sr-only" : undefined}>
             <DialogTitle>{title}</DialogTitle>
             {description && <DialogDescription>{description}</DialogDescription>}

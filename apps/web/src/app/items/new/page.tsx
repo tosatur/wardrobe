@@ -1,9 +1,10 @@
 import { ItemForm } from "@/components/item-form";
+import { DetailPageShell } from "@/components/detail-page-shell";
 
 export default function NewItemPage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <DetailPageShell>
       <ItemForm backHref="/items" />
-    </main>
+    </DetailPageShell>
   );
 }

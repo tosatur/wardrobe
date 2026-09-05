@@ -8,7 +8,7 @@ export default function InterceptedItemDetailPage({ params }: { params: Promise<
   const { id } = use(params);
 
   return (
-    <RouteModal title="Item details" hideHeader>
+    <RouteModal title="Item details" hideHeader showCloseButton={false}>
       <ItemDetailContent id={id} />
     </RouteModal>
   );

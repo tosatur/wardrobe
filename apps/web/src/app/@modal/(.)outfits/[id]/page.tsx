@@ -8,7 +8,7 @@ export default function InterceptedOutfitDetailPage({ params }: { params: Promis
   const { id } = use(params);
 
   return (
-    <RouteModal title="Outfit details" hideHeader>
+    <RouteModal title="Outfit details" hideHeader showCloseButton={false}>
       <OutfitDetailContent id={id} />
     </RouteModal>
   );

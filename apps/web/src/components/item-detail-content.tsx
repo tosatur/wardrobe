@@ -9,14 +9,13 @@ import { ArchiveIcon, ArchiveRestoreIcon, PencilIcon, Trash2Icon } from "lucide-
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EntityToolbar } from "@/components/entity-toolbar";
+import { SectionEyebrow } from "@/components/section-eyebrow";
 import { DeleteItemDialog } from "@/components/delete-item-dialog";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
-import { ItemHistoryTimeline } from "@/components/item-history-timeline";
 import { API_URL } from "@/lib/auth-client";
 import { getItem, updateItem } from "@/lib/items-client";
 import { EmptyState } from "@/components/empty-state";
@@ -51,7 +50,7 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
     return (
       <div className="flex flex-col gap-8">
         <Skeleton className="h-14 w-full" />
-        <div className="grid grid-cols-1 gap-x-10 gap-y-8 px-6 lg:grid-cols-[7fr_5fr]">
+        <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
           <Skeleton className="aspect-square w-full" />
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -70,14 +69,6 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
   if (!item) {
     return <EmptyState className="py-12 text-center">Item not found.</EmptyState>;
   }
-
-  const details: [string, string | number | null][] = [
-    ["Brand", item.brand?.name ?? null],
-    ["Size", item.size],
-    ["Price", item.price != null ? `${currencySymbol(item.currency)}${item.price.toFixed(2)}` : null],
-    ["Purchase date", item.purchaseDate?.slice(0, 10) ?? null],
-    ["Visibility", item.visibility],
-  ];
 
   const stats = item.stats;
 
@@ -153,117 +144,134 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
         }
       />
 
-      <div className="flex flex-col gap-8 px-6 pb-6">
-        <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[7fr_5fr]">
-          {/* The photo is the hero, its own frame, not tucked inside the info
-              card, so it reads as the main event, not an attachment. Read-only
-              here; replacing the photo is an edit-page action. */}
-          <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted p-3">
-            {item.photoCutoutUrl || item.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image
-              <img
-                src={`${API_URL}${showOriginal ? (item.photoUrl ?? item.photoCutoutUrl) : (item.photoCutoutUrl ?? item.photoUrl)}`}
-                crossOrigin="use-credentials"
-                alt="Item photo"
-                className="size-full object-contain"
-              />
-            ) : (
-              <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
-                No photo
+      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
+        {/* The photo is the hero, its own frame, not tucked inside the info
+            panel, so it reads as the main event, not an attachment. Read-only
+            here; replacing the photo is an edit-page action. */}
+        <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted p-3">
+          {item.photoCutoutUrl || item.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image
+            <img
+              src={`${API_URL}${showOriginal ? (item.photoUrl ?? item.photoCutoutUrl) : (item.photoCutoutUrl ?? item.photoUrl)}`}
+              crossOrigin="use-credentials"
+              alt="Item photo"
+              className="size-full object-contain"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
+              No photo
+            </div>
+          )}
+          {item.photoCutoutUrl && item.photoUrl && (
+            <PhotoViewToggle
+              showOriginal={showOriginal}
+              onChange={setShowOriginal}
+              className="absolute right-3 bottom-3"
+            />
+          )}
+          {item.photoStatus === "processing" && (
+            <PhotoProcessingBadge className="absolute top-3 right-3" />
+          )}
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {(item.brand?.name || item.size) && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {item.brand?.name && (
+                <div>
+                  <p className="text-sm font-medium">Brand</p>
+                  <p className="text-sm text-muted-foreground">{item.brand.name}</p>
+                </div>
+              )}
+              {item.size && (
+                <div>
+                  <p className="text-sm font-medium">Size</p>
+                  <p className="text-sm text-muted-foreground">{item.size}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {(item.materials.length > 0 || item.colors.length > 0) && (
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Details</SectionEyebrow>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {item.materials.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium">Materials</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.materials.map((material) => (
+                        <Badge key={material.id} variant="outline">
+                          {material.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {item.colors.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium">Colors</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.colors.map((color) => (
+                        <Badge key={color.id} variant="outline" className="gap-1.5">
+                          <span
+                            className="size-2.5 shrink-0 rounded-full border"
+                            style={{ backgroundColor: color.hex }}
+                          />
+                          {color.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {item.photoCutoutUrl && item.photoUrl && (
-              <PhotoViewToggle
-                showOriginal={showOriginal}
-                onChange={setShowOriginal}
-                className="absolute right-3 bottom-3"
-              />
-            )}
-            {item.photoStatus === "processing" && (
-              <PhotoProcessingBadge className="absolute top-3 right-3" />
-            )}
-          </div>
+            </div>
+          )}
 
-          <Card className="h-fit">
-            <CardContent className="space-y-6">
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                {details
-                  .filter(([, value]) => value != null)
-                  .map(([label, value]) => (
-                    <div key={label}>
-                      <dt className="text-muted-foreground">{label}</dt>
-                      <dd className="capitalize">{value}</dd>
-                    </div>
-                  ))}
-              </dl>
-
-              {stats && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Stats</p>
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                    <div>
-                      <dt className="text-muted-foreground">Times worn</dt>
-                      <dd>{stats.timesWorn}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Last worn</dt>
-                      <dd>
-                        {stats.lastWornDate
-                          ? new Date(stats.lastWornDate).toLocaleDateString(undefined, {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })
-                          : "Never"}
-                      </dd>
-                    </div>
-                    {stats.costPerWear != null && (
-                      <div>
-                        <dt className="text-muted-foreground">Cost per wear</dt>
-                        <dd>
-                          {currencySymbol(item.currency)}
-                          {stats.costPerWear.toFixed(2)}
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
+          {stats && (
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Stats</SectionEyebrow>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm font-medium">Times worn</p>
+                  <p className="text-sm text-muted-foreground">{stats.timesWorn}</p>
                 </div>
-              )}
-
-              {item.colors.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Colors</p>
-                  <div className="flex flex-wrap gap-1">
-                    {item.colors.map((color) => (
-                      <Badge key={color.id} variant="outline" className="gap-1.5">
-                        <span
-                          className="size-2.5 shrink-0 rounded-full border"
-                          style={{ backgroundColor: color.hex }}
-                        />
-                        {color.name}
-                      </Badge>
-                    ))}
+                <div>
+                  <p className="text-sm font-medium">Last worn</p>
+                  <p className="text-sm text-muted-foreground">
+                    {stats.lastWornDate
+                      ? new Date(stats.lastWornDate).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "Never"}
+                  </p>
+                </div>
+                {stats.costPerWear != null && (
+                  <div>
+                    <p className="text-sm font-medium">Cost per wear</p>
+                    <p className="text-sm text-muted-foreground">
+                      {currencySymbol(item.currency)}
+                      {stats.costPerWear.toFixed(2)}
+                    </p>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+          )}
 
-              {item.materials.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Materials</p>
-                  <div className="flex flex-wrap gap-1">
-                    {item.materials.map((material) => (
-                      <Badge key={material.id} variant="outline">
-                        {material.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+          <div className="flex flex-col gap-4">
+            <SectionEyebrow>Organize</SectionEyebrow>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium">Visibility</p>
+                <p className="text-sm text-muted-foreground capitalize">{item.visibility}</p>
+              </div>
               {item.tags.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Tags</p>
-                  <div className="flex flex-wrap gap-1">
+                <div>
+                  <p className="text-sm font-medium">Tags</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
                     {item.tags.map((tag) => (
                       <Badge key={tag} variant="secondary">
                         {tag}
@@ -272,18 +280,41 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
                   </div>
                 </div>
               )}
+            </div>
+          </div>
 
-              {item.notes && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Notes</p>
-                  <p className="text-sm">{item.notes}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {(item.purchaseDate || item.price != null) && (
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Provenance</SectionEyebrow>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {item.purchaseDate && (
+                  <div>
+                    <p className="text-sm font-medium">Purchase date</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.purchaseDate.slice(0, 10)}
+                    </p>
+                  </div>
+                )}
+                {item.price != null && (
+                  <div>
+                    <p className="text-sm font-medium">Price</p>
+                    <p className="text-sm text-muted-foreground">
+                      {currencySymbol(item.currency)}
+                      {item.price.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {item.notes && (
+            <div className="flex flex-col gap-4">
+              <SectionEyebrow>Notes</SectionEyebrow>
+              <p className="text-sm text-muted-foreground">{item.notes}</p>
+            </div>
+          )}
         </div>
-
-        <ItemHistoryTimeline itemId={id} />
       </div>
 
       <DeleteItemDialog

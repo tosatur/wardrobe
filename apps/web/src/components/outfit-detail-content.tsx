@@ -8,10 +8,10 @@ import { CalendarPlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EntityToolbar } from "@/components/entity-toolbar";
+import { SectionEyebrow } from "@/components/section-eyebrow";
 import { StarRating } from "@/components/star-rating";
 import {
   AlertDialog,
@@ -65,7 +65,7 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
     return (
       <div className="flex flex-col gap-8">
         <Skeleton className="h-14 w-full" />
-        <div className="grid grid-cols-1 gap-x-10 gap-y-8 px-6 lg:grid-cols-[7fr_5fr]">
+        <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
           <Skeleton className="aspect-square w-full" />
           <div className="space-y-6">
             <Skeleton className="h-4 w-full" />
@@ -149,55 +149,66 @@ export function OutfitDetailContent({ id, backHref }: { id: string; backHref?: s
         }
       />
 
-      <div className="grid grid-cols-1 gap-x-10 gap-y-8 px-6 pb-6 lg:grid-cols-[7fr_5fr]">
+      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[5fr_7fr]">
         <OutfitCanvas readOnly items={outfit.items} coverPhotoUrl={outfit.coverPhotoUrl} />
 
-        <Card className="h-fit">
-          <CardContent className="space-y-6">
-            {outfit.description && <p className="text-sm">{outfit.description}</p>}
+        <div className="flex flex-col gap-6">
+          {outfit.description && (
+            <div>
+              <p className="text-sm font-medium">Description</p>
+              <p className="text-sm text-muted-foreground">{outfit.description}</p>
+            </div>
+          )}
 
-            {outfit.rating != null && (
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Rating</p>
-                <StarRating value={outfit.rating} readOnly />
+          {outfit.rating != null && (
+            <div>
+              <p className="text-sm font-medium">Rating</p>
+              <StarRating value={outfit.rating} readOnly />
+            </div>
+          )}
+
+          {outfit.tags.length > 0 && (
+            <div>
+              <p className="text-sm font-medium">Tags</p>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {outfit.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {outfit.tags.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Tags</p>
-                <div className="flex flex-wrap gap-1">
-                  {outfit.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+          {outfit.wornDates.length > 0 && (
+            <div>
+              <p className="text-sm font-medium">
+                Worn on{" "}
+                <span className="font-normal text-muted-foreground">
+                  ({outfit.wornDates.length} {outfit.wornDates.length === 1 ? "time" : "times"})
+                </span>
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {outfit.wornDates.map((w) => (
+                  <Badge key={w.id} variant="outline">
+                    {new Date(w.date).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </Badge>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {outfit.wornDates.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">
-                  Worn {outfit.wornDates.length} {outfit.wornDates.length === 1 ? "time" : "times"}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {outfit.wornDates.map((w) => (
-                    <Badge key={w.id} variant="outline">
-                      {new Date(w.date).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <OutfitAnalysis items={outfit.items.map((oi) => oi.item)} />
-          </CardContent>
-        </Card>
+          {outfit.items.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <SectionEyebrow>Analysis</SectionEyebrow>
+              <OutfitAnalysis items={outfit.items.map((oi) => oi.item)} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

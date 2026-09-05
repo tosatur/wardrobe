@@ -185,13 +185,7 @@ export function ItemForm({ item, backHref }: { item?: ItemDto; backHref?: string
         }
       />
 
-      <div className="flex flex-col gap-8 px-6 pb-6">
-        {mode === "create" && (
-          <p className="-mt-4 text-sm text-muted-foreground">
-            Fill in what you know. You can always come back and add more.
-          </p>
-        )}
-
+      <div className="flex flex-col gap-8">
         {/* Row 1: the photo paired with just enough fields (Identity + Details)
             to roughly match its height, a photo alone against the full field
             list left a dead gap once the list ran taller than a square photo. */}
@@ -206,11 +200,7 @@ export function ItemForm({ item, backHref }: { item?: ItemDto; backHref?: string
                 onUploaded={() => router.refresh()}
               />
             ) : (
-              <PhotoPicker
-                previewUrl={photoPreviewUrl}
-                hasFile={!!photoFile}
-                onSelect={handlePhotoSelect}
-              />
+              <PhotoPicker previewUrl={photoPreviewUrl} onSelect={handlePhotoSelect} />
             )}
           </div>
 
