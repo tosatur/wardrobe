@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { getSession, type Session } from "@/lib/auth-client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getSession } from "@/lib/auth-client";
 import { updateProfile, changeEmail, changePassword } from "@/lib/users-client";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -14,28 +15,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QueryError } from "@/components/query-error";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 import type { GeocodeResultDto } from "@wardrobe/shared";
 
 export default function ProfilePage() {
-  const [session, setSession] = useState<Session | null | "pending">("pending");
+  const queryClient = useQueryClient();
+  const {
+    data: session,
+    isPending: isSessionQueryPending,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["session"], queryFn: getSession });
+  const isPending = useMinDurationPending(isSessionQueryPending);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
+  // Only seeds the form fields once, the first time the session loads - a
+  // later refetch (after saving) shouldn't clobber whatever the user is
+  // mid-typing in the same form.
+  const didSeedRef = useRef(false);
   useEffect(() => {
-    void getSession().then((s) => {
-      setSession(s);
-      if (s) {
-        setName(s.user.name);
-        setEmail(s.user.email);
-      }
-    });
-  }, []);
+    if (session && !didSeedRef.current) {
+      didSeedRef.current = true;
+      setName(session.user.name);
+      setEmail(session.user.email);
+    }
+  }, [session]);
+
+  function refreshSession() {
+    return queryClient.invalidateQueries({ queryKey: ["session"] });
+  }
 
   async function handleAccountSubmit(event: FormEvent) {
     event.preventDefault();
-    if (session === "pending" || !session) return;
+    if (!session) return;
 
     if (name !== session.user.name) {
       const { error } = await updateProfile({ name });
@@ -52,7 +69,7 @@ export default function ProfilePage() {
       }
     }
     toast.success("Account updated.");
-    void getSession().then(setSession);
+    void refreshSession();
   }
 
   async function handlePasswordSubmit(event: FormEvent) {
@@ -78,7 +95,7 @@ export default function ProfilePage() {
       return;
     }
     toast.success("Location updated.");
-    void getSession().then(setSession);
+    void refreshSession();
   }
 
   async function handleClearLocation() {
@@ -91,7 +108,7 @@ export default function ProfilePage() {
       toast.error(error);
       return;
     }
-    void getSession().then(setSession);
+    void refreshSession();
   }
 
   async function handleCurrencyChange(defaultCurrency: string) {
@@ -101,16 +118,58 @@ export default function ProfilePage() {
       return;
     }
     toast.success("Default currency updated.");
-    void getSession().then(setSession);
+    void refreshSession();
   }
 
-  if (session === "pending") {
+  if (isPending) {
     return (
       <main className="mx-auto max-w-lg px-4 py-8">
-        <Skeleton className="h-64 w-full" />
+        <div className="mb-6 grid w-full grid-cols-2 gap-1 rounded-md bg-muted p-1">
+          <Skeleton className="h-7 w-full" />
+          <Skeleton className="h-7 w-full" />
+        </div>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-32" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="size-20 rounded-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-20" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-24" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-24" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-32" />
+            </CardContent>
+          </Card>
+        </div>
       </main>
     );
   }
+
+  if (isError) {
+    return (
+      <main className="mx-auto max-w-lg px-4 py-8">
+        <QueryError onRetry={() => void refetch()} className="py-12" />
+      </main>
+    );
+  }
+
   if (!session) {
     return (
       <main className="mx-auto max-w-lg px-4 py-8">
@@ -121,7 +180,7 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-8">
-      <Tabs defaultValue="account">
+      <Tabs defaultValue="account" className="animate-in fade-in-0 duration-200 motion-reduce:animate-none">
         <TabsList className="w-full">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
@@ -136,7 +195,7 @@ export default function ProfilePage() {
               <AvatarUpload
                 currentImageUrl={session.user.image}
                 name={session.user.name}
-                onUploaded={() => void getSession().then(setSession)}
+                onUploaded={() => void refreshSession()}
               />
             </CardContent>
           </Card>
