@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,12 @@ import { ViewToggle, type ViewMode } from "@/components/view-toggle";
 import { HoverReticle } from "@/components/hover-reticle";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
 import { listOutfits } from "@/lib/outfits-client";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
 import { useHoverReticle } from "@/hooks/use-hover-reticle";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
+import { cn } from "@/lib/utils";
 
 function isOutfitViewMode(value: string | null): value is "grid" | "list" {
   return value === "grid" || value === "list";
@@ -44,10 +48,23 @@ function OutfitsPageContent() {
     router.replace(`/outfits?${next.toString()}`);
   }
 
-  const { data: outfits, isPending } = useQuery({
+  const {
+    data: outfits,
+    error: outfitsError,
+    isPending: isOutfitsQueryPending,
+    isFetching: isOutfitsFetching,
+    refetch: refetchOutfits,
+  } = useQuery({
     queryKey: ["outfits", { q }],
     queryFn: () => listOutfits({ q }),
+    placeholderData: keepPreviousData,
   });
+  const isPending = useMinDurationPending(isOutfitsQueryPending);
+
+  useEffect(() => {
+    if (outfitsError && outfits) toast.error("Couldn't refresh results.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-fire when the error identity changes, not on every outfits update, so a lingering stale error doesn't re-toast on each successful background refetch
+  }, [outfitsError]);
 
   const { hoverRect, handleHoverChange } = useHoverReticle();
 
@@ -90,9 +107,15 @@ function OutfitsPageContent() {
       </div>
 
       {isPending && view === "list" && (
-        <div className="glass divide-y divide-border p-3">
+        <div className="glass p-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="my-2 h-12 w-full" />
+            <div key={i} className="flex items-center gap-3 border-b border-border py-2 last:border-b-0">
+              <Skeleton className="size-12 shrink-0 rounded-sm" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -104,20 +127,34 @@ function OutfitsPageContent() {
         </div>
       )}
 
-      {!isPending && outfits?.length === 0 && (
+      {!isPending && outfitsError && !outfits && (
+        <QueryError onRetry={() => void refetchOutfits()} className="py-12" />
+      )}
+
+      {!isPending && (!outfitsError || outfits) && outfits?.length === 0 && (
         <EmptyState>{q ? "No outfits match your search." : "No outfits yet."}</EmptyState>
       )}
 
-      {!isPending && outfits && outfits.length > 0 && view === "list" && (
-        <div className="glass p-3">
+      {!isPending && (!outfitsError || outfits) && outfits && outfits.length > 0 && view === "list" && (
+        <div
+          className={cn(
+            "glass p-3 animate-in fade-in-0 duration-200 motion-reduce:animate-none",
+            isOutfitsFetching && "opacity-60 transition-opacity motion-reduce:transition-none",
+          )}
+        >
           {outfits.map((outfit) => (
             <OutfitListRow key={outfit.id} outfit={outfit} />
           ))}
         </div>
       )}
 
-      {!isPending && outfits && outfits.length > 0 && view === "grid" && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      {!isPending && (!outfitsError || outfits) && outfits && outfits.length > 0 && view === "grid" && (
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 animate-in fade-in-0 duration-200 motion-reduce:animate-none",
+            isOutfitsFetching && "opacity-60 transition-opacity motion-reduce:transition-none",
+          )}
+        >
           {outfits.map((outfit) => (
             <OutfitCard key={outfit.id} outfit={outfit} onHoverChange={handleHoverChange} />
           ))}
