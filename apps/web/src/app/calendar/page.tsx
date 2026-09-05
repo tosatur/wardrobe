@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QueryError } from "@/components/query-error";
 import { cn } from "@/lib/utils";
 import { listWears } from "@/lib/outfits-client";
 import { CalendarWearTile } from "@/components/calendar-wear-tile";
@@ -15,6 +17,7 @@ import { PageHeader } from "@/components/page-header";
 import { getWeather } from "@/lib/weather-client";
 import { toDateKey } from "@/lib/date";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -102,10 +105,22 @@ function CalendarPageContent() {
   const start = toDateKey(queryStart);
   const end = toDateKey(queryEnd);
 
-  const { data: wears, isPending } = useQuery({
+  const {
+    data: wears,
+    error: wearsError,
+    isPending: isWearsQueryPending,
+    isFetching: isWearsFetching,
+    refetch: refetchWears,
+  } = useQuery({
     queryKey: ["wears", start, end],
     queryFn: () => listWears({ start, end }),
+    placeholderData: keepPreviousData,
   });
+  const isPending = useMinDurationPending(isWearsQueryPending);
+
+  useEffect(() => {
+    if (wearsError && wears) toast.error("Couldn't refresh results.");
+  }, [wearsError]);
 
   const { data: weatherDays } = useQuery({
     queryKey: ["weather", start, end],
@@ -151,9 +166,22 @@ function CalendarPageContent() {
         }
       />
 
-      {isPending ? (
-        <Skeleton className="h-96 w-full" />
-      ) : (
+      {isPending && (
+        <div className="glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10">
+          {WEEKDAY_LABELS.map((label) => (
+            <Skeleton key={label} className="h-7 w-full rounded-none" />
+          ))}
+          {days.map((day) => (
+            <Skeleton key={toDateKey(day)} className="min-h-36 w-full rounded-none" />
+          ))}
+        </div>
+      )}
+
+      {!isPending && wearsError && !wears && (
+        <QueryError onRetry={() => void refetchWears()} className="py-12" />
+      )}
+
+      {!isPending && (!wearsError || wears) && (
         // Keyed by month so switching months mounts a fresh element - the
         // animate-in classes only play on mount, not on a prop update of
         // the same element.
@@ -162,6 +190,7 @@ function CalendarPageContent() {
           className={cn(
             "glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300 motion-reduce:animate-none",
             direction === "next" ? "slide-in-from-right-8" : "slide-in-from-left-8",
+            isWearsFetching && "opacity-60 transition-opacity",
           )}
         >
           {WEEKDAY_LABELS.map((label) => (
