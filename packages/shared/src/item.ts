@@ -17,7 +17,7 @@ const tagNameSchema = z.string().trim().min(1).max(50);
 // (e.g. resetting `colorIds` back to `[]`) for a field the client didn't send.
 const itemFields = {
   nickname: z.string().trim().max(100).optional(),
-  categoryId: z.string().min(1),
+  categoryId: z.string().min(1, "Select a category."),
   brandName: z.string().trim().min(1).max(100).optional(),
   colorIds: z.array(z.string()).max(10),
   materialIds: z.array(z.string()).max(10),
