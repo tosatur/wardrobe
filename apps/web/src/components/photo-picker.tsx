@@ -9,11 +9,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 // item id yet to upload against. The parent uploads it once the item exists.
 export function PhotoPicker({
   previewUrl,
-  hasFile,
   onSelect,
 }: {
   previewUrl: string | null;
-  hasFile: boolean;
   onSelect: (file: File | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,8 +22,13 @@ export function PhotoPicker({
         // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
         <img src={previewUrl} alt="Selected photo" className="size-full object-contain" />
       ) : (
-        <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
-          No photo yet
+        <div className="flex size-full flex-col items-center justify-center gap-3">
+          <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+            No photo yet
+          </p>
+          <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
+            <ImageUpIcon /> Upload photo
+          </Button>
         </div>
       )}
       <input
@@ -35,23 +38,25 @@ export function PhotoPicker({
         className="hidden"
         onChange={(e: ChangeEvent<HTMLInputElement>) => onSelect(e.target.files?.[0] ?? null)}
       />
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              aria-label={hasFile ? "Replace photo" : "Choose photo"}
-              onClick={() => inputRef.current?.click()}
-              className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
-            />
-          }
-        >
-          <ImageUpIcon />
-        </TooltipTrigger>
-        <TooltipContent>{hasFile ? "Replace photo" : "Choose photo"}</TooltipContent>
-      </Tooltip>
+      {previewUrl && (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Replace photo"
+                onClick={() => inputRef.current?.click()}
+                className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
+              />
+            }
+          >
+            <ImageUpIcon />
+          </TooltipTrigger>
+          <TooltipContent>Replace photo</TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }

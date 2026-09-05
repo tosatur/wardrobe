@@ -79,8 +79,18 @@ export function PhotoUpload({
           className="size-full object-contain"
         />
       ) : (
-        <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">
-          No photo
+        <div className="flex size-full flex-col items-center justify-center gap-3">
+          <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+            No photo
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+          >
+            <ImageUpIcon /> Upload photo
+          </Button>
         </div>
       )}
       {!preview && currentPhotoUrl && currentPhotoCutoutUrl && (
@@ -101,26 +111,26 @@ export function PhotoUpload({
       {/* Fixed dark glass rather than the theme-relative .glass utility,
           this floats over an arbitrary photo, not page background, so it
           needs to stay legible regardless of the site's own light/dark mode. */}
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              disabled={uploading}
-              aria-label={currentPhotoUrl ? "Replace photo" : "Upload photo"}
-              onClick={() => inputRef.current?.click()}
-              className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
-            />
-          }
-        >
-          <ImageUpIcon />
-        </TooltipTrigger>
-        <TooltipContent>
-          {uploading ? "Uploading…" : currentPhotoUrl ? "Replace photo" : "Upload photo"}
-        </TooltipContent>
-      </Tooltip>
+      {displayUrl && (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={uploading}
+                aria-label="Replace photo"
+                onClick={() => inputRef.current?.click()}
+                className="absolute bottom-3 left-3 border-white/20 bg-black/40 text-white backdrop-blur-md hover:bg-black/55"
+              />
+            }
+          >
+            <ImageUpIcon />
+          </TooltipTrigger>
+          <TooltipContent>{uploading ? "Uploading…" : "Replace photo"}</TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
