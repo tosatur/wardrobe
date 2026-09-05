@@ -92,7 +92,7 @@ export function ItemHistoryTimeline({ itemId }: { itemId: string }) {
         <p className="text-sm text-muted-foreground">No history yet.</p>
       )}
 
-      {!isPending && entries && entries.length > 0 && (
+      {!isPending && !isError && entries && entries.length > 0 && (
         <ul className="flex flex-col gap-2">
           {entries.map((entry) => {
             const Icon = entry.kind === "worn" ? Shirt : EVENT_ICON[entry.type];
