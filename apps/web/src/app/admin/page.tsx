@@ -1,26 +1,27 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { getSession, createUser, type Session } from "@/lib/auth-client";
+import { useQuery } from "@tanstack/react-query";
+import { getSession, createUser } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
+import { QueryError } from "@/components/query-error";
 
 export default function AdminPage() {
-  const [session, setSession] = useState<Session | null | "pending">("pending");
+  const { data: session, isPending, isError, refetch } = useQuery({
+    queryKey: ["session"],
+    queryFn: getSession,
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    void getSession().then(setSession);
-  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -40,7 +41,7 @@ export default function AdminPage() {
     setName("");
   }
 
-  if (session === "pending") {
+  if (isPending) {
     return (
       <main className="mx-auto max-w-sm px-4 py-8">
         <Card>
@@ -57,6 +58,15 @@ export default function AdminPage() {
       </main>
     );
   }
+
+  if (isError) {
+    return (
+      <main className="mx-auto max-w-sm px-4 py-8">
+        <QueryError onRetry={() => void refetch()} className="py-12" />
+      </main>
+    );
+  }
+
   if (!session || session.user.role !== "admin") {
     return (
       <main className="mx-auto max-w-sm px-4 py-8">
