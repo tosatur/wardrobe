@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
-import { ImageUpIcon } from "lucide-react";
+import { UploadIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PhotoStatus } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
@@ -89,7 +89,7 @@ export function PhotoUpload({
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
           >
-            <ImageUpIcon /> Upload photo
+            <UploadIcon /> Upload
           </Button>
         </div>
       )}
@@ -126,7 +126,7 @@ export function PhotoUpload({
               />
             }
           >
-            <ImageUpIcon />
+            <UploadIcon />
           </TooltipTrigger>
           <TooltipContent>{uploading ? "Uploading…" : "Replace photo"}</TooltipContent>
         </Tooltip>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
-import { ImageUpIcon } from "lucide-react";
+import { UploadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -27,7 +27,7 @@ export function PhotoPicker({
             No photo yet
           </p>
           <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
-            <ImageUpIcon /> Upload photo
+            <UploadIcon /> Upload
           </Button>
         </div>
       )}
@@ -52,7 +52,7 @@ export function PhotoPicker({
               />
             }
           >
-            <ImageUpIcon />
+            <UploadIcon />
           </TooltipTrigger>
           <TooltipContent>Replace photo</TooltipContent>
         </Tooltip>
