@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,7 +74,8 @@ function OutfitsPageContent() {
               // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
               onClick={() => (window.location.href = "/outfits/new")}
             >
-              + Add outfit
+            <PlusIcon />
+            Add outfit
             </Button>
           </>
         }
