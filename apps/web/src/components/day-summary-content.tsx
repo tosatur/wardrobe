@@ -9,9 +9,20 @@ import { weatherIcon, weatherLabel } from "@/lib/weather";
 import { OutfitCanvas } from "@/components/outfit-canvas";
 import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EntityToolbar } from "@/components/entity-toolbar";
 
-export function DaySummaryContent({ date }: { date: string }) {
+export function DaySummaryContent({ date, backHref }: { date: string; backHref?: string }) {
   const day = parseDateKey(date);
+  // Title is derived purely from the date param, not the wears/weather
+  // fetch, so the toolbar can render immediately instead of waiting behind
+  // a skeleton like the other detail surfaces (which only know their title
+  // once their own fetch resolves).
+  const formatted = day.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   // Padded a day on each side and re-bucketed below by local calendar day —
   // same reasoning as the calendar grid's own query: a wear's timestamp or
@@ -34,58 +45,60 @@ export function DaySummaryContent({ date }: { date: string }) {
     queryFn: () => getWeather({ start, end }),
   });
 
-  if (wearsPending || weatherPending) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-14 w-full" />
-      </div>
-    );
-  }
-
   const dayWears = (wears ?? []).filter((wear) => toDateKey(new Date(wear.date)) === date);
   const weather = weatherDays?.find((w) => w.date === date);
   const Icon = weather ? weatherIcon(weather.weatherCode) : null;
 
   return (
-    <div className="space-y-6">
-      {weather && Icon && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {/* eslint-disable-next-line react-hooks/static-components -- weatherIcon selects a stable, statically-imported lucide icon, not one created during render */}
-          <Icon className="size-4" />
-          <span>
-            {weatherLabel(weather.weatherCode)} · {Math.round(weather.tempMaxC)}°/
-            {Math.round(weather.tempMinC)}°
-          </span>
-        </div>
-      )}
+    <div className="flex flex-col gap-8">
+      <EntityToolbar backHref={backHref} backLabel="Back to calendar" title={formatted} />
 
-      {dayWears.length === 0 ? (
-        <EmptyState>No outfits logged.</EmptyState>
+      {wearsPending || weatherPending ? (
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-14 w-full" />
+        </div>
       ) : (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            {dayWears.length} {dayWears.length === 1 ? "outfit" : "outfits"} logged
-          </p>
-          <div className="space-y-1">
-            {dayWears.map((wear) => (
-              <Link
-                key={wear.id}
-                href={`/outfits/${wear.outfit.id}`}
-                className="flex items-center gap-3 rounded-sm p-1 transition-colors hover:bg-muted"
-              >
-                <div className="size-14 shrink-0 overflow-hidden rounded-sm">
-                  <OutfitCanvas
-                    readOnly
-                    thumbnail
-                    items={wear.outfit.items}
-                    coverPhotoUrl={wear.outfit.coverPhotoUrl}
-                  />
-                </div>
-                <span className="text-sm font-medium">{wear.outfit.name}</span>
-              </Link>
-            ))}
-          </div>
+        <div className="space-y-6">
+          {weather && Icon && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {/* eslint-disable-next-line react-hooks/static-components -- weatherIcon selects a stable, statically-imported lucide icon, not one created during render */}
+              <Icon className="size-4" />
+              <span>
+                {weatherLabel(weather.weatherCode)} · {Math.round(weather.tempMaxC)}°/
+                {Math.round(weather.tempMinC)}°
+              </span>
+            </div>
+          )}
+
+          {dayWears.length === 0 ? (
+            <EmptyState>No outfits logged.</EmptyState>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {dayWears.length} {dayWears.length === 1 ? "outfit" : "outfits"} logged
+              </p>
+              <div className="space-y-1">
+                {dayWears.map((wear) => (
+                  <Link
+                    key={wear.id}
+                    href={`/outfits/${wear.outfit.id}`}
+                    className="flex items-center gap-3 rounded-sm p-1 transition-colors hover:bg-muted"
+                  >
+                    <div className="size-14 shrink-0 overflow-hidden rounded-sm">
+                      <OutfitCanvas
+                        readOnly
+                        thumbnail
+                        items={wear.outfit.items}
+                        coverPhotoUrl={wear.outfit.coverPhotoUrl}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{wear.outfit.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

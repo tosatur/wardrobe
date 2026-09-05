@@ -10,10 +10,16 @@ import { cn } from "@/lib/utils";
  * No fixed positioning, no backdrop, no max-h/internal scroll - the page
  * itself scrolls.
  */
-export function DetailPageShell({ children }: { children: ReactNode }) {
+export function DetailPageShell({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <main className="px-4 py-8">
-      <div className={cn(DETAIL_SURFACE_CLASS, "mx-auto")}>{children}</div>
+      <div className={cn(DETAIL_SURFACE_CLASS, "mx-auto", className)}>{children}</div>
     </main>
   );
 }
