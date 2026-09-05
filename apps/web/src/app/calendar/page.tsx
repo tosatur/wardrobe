@@ -120,6 +120,7 @@ function CalendarPageContent() {
 
   useEffect(() => {
     if (wearsError && wears) toast.error("Couldn't refresh results.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-fire when the error identity changes, not on every wears update, so a lingering stale error doesn't re-toast on each successful background refetch
   }, [wearsError]);
 
   const { data: weatherDays } = useQuery({
@@ -190,7 +191,7 @@ function CalendarPageContent() {
           className={cn(
             "glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300 motion-reduce:animate-none",
             direction === "next" ? "slide-in-from-right-8" : "slide-in-from-left-8",
-            isWearsFetching && "opacity-60 transition-opacity",
+            isWearsFetching && "opacity-60 transition-opacity motion-reduce:transition-none",
           )}
         >
           {WEEKDAY_LABELS.map((label) => (
