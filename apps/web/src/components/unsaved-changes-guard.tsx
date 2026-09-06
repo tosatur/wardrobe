@@ -2,16 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DiscardChangesDialog } from "@/components/discard-changes-dialog";
 import { useUnsavedChangesStore } from "@/lib/unsaved-changes-store";
 
 function findNavigableAnchor(target: EventTarget | null): HTMLAnchorElement | null {
@@ -61,28 +52,15 @@ export function UnsavedChangesGuard() {
   }, [isDirty]);
 
   return (
-    <AlertDialog open={pendingHref != null} onOpenChange={(open) => !open && setPendingHref(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Discard your changes?</AlertDialogTitle>
-          <AlertDialogDescription>
-            You have unsaved changes. Leaving now will discard them.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Keep editing</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              if (!pendingHref) return;
-              setDirty(false);
-              router.push(pendingHref);
-              setPendingHref(null);
-            }}
-          >
-            Discard
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <DiscardChangesDialog
+      open={pendingHref != null}
+      onOpenChange={(open) => !open && setPendingHref(null)}
+      onDiscard={() => {
+        if (!pendingHref) return;
+        setDirty(false);
+        router.push(pendingHref);
+        setPendingHref(null);
+      }}
+    />
   );
 }

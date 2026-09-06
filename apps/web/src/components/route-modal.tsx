@@ -9,16 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DiscardChangesDialog } from "@/components/discard-changes-dialog";
 import { useUnsavedChangesStore } from "@/lib/unsaved-changes-store";
 import { DETAIL_SURFACE_CLASS } from "@/lib/detail-surface";
 import { cn } from "@/lib/utils";
@@ -102,27 +93,14 @@ export function RouteModal({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Discard your changes?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have unsaved changes. Leaving now will discard them.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setDirty(false);
-                setOpen(false);
-              }}
-            >
-              Discard
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DiscardChangesDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onDiscard={() => {
+          setDirty(false);
+          setOpen(false);
+        }}
+      />
     </>
   );
 }
