@@ -51,13 +51,13 @@ export async function signOut() {
 }
 
 export async function createUser(email: string, password: string, name: string) {
-  const res = await authFetch("/admin/users", {
+  const res = await authFetch("/api/auth/admin/create-user", {
     method: "POST",
     body: JSON.stringify({ email, password, name }),
   });
-  const body: { error?: string } = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { error: body.error ?? "User creation failed." };
+    const body: { message?: string } = await res.json().catch(() => ({}));
+    return { error: body.message ?? "User creation failed." };
   }
   return { error: null };
 }

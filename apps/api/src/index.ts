@@ -107,32 +107,6 @@ app.post<{
   }
 });
 
-app.post<{
-  Body: { email?: string; password?: string; name?: string };
-}>("/admin/users", async (request, reply) => {
-  const session = await requireSession(request, reply);
-  if (!session) return;
-  if (session.user.role !== "admin") {
-    return reply.status(403).send({ error: "Admin access required." });
-  }
-
-  const { email, password, name } = request.body ?? {};
-  if (!email || !password || !name) {
-    return reply.status(400).send({ error: "email, password, and name are required." });
-  }
-
-  try {
-    const created = await auth.api.createUser({
-      headers: fromNodeHeaders(request.headers),
-      body: { email, password, name },
-    });
-    return reply.send({ user: created.user });
-  } catch (error) {
-    request.log.error(error);
-    return reply.status(400).send({ error: "User creation failed." });
-  }
-});
-
 app.post<{ Body: { newEmail?: string; currentPassword?: string } }>(
   "/api/auth/change-email",
   async (request, reply) => {
