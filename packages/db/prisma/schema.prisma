@@ -301,3 +301,14 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+// A single claimable row: whichever concurrent /auth/register request
+// inserts it first wins the right to become the first (admin) user, closing
+// the TOCTOU window a plain "SELECT count(*)" check would leave open. The
+// row is deleted again if that request's signup then fails, so a later
+// attempt can retry.
+model RegistrationLock {
+  id String @id
+
+  @@map("registration_lock")
+}

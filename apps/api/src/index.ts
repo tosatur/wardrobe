@@ -3,7 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { fromNodeHeaders } from "better-auth/node";
-import { prisma } from "@wardrobe/db";
+import { prisma, Prisma } from "@wardrobe/db";
 import { auth } from "./auth.js";
 import { requireSession } from "./authorization.js";
 import { itemRoutes } from "./items.js";
@@ -57,9 +57,17 @@ app.post<{
     return reply.status(400).send({ error: "email, password, and name are required." });
   }
 
-  const userCount = await prisma.user.count();
-  if (userCount > 0) {
-    return reply.status(403).send({ error: "Registration is closed. Ask an admin for an account." });
+  // Two concurrent requests could otherwise both read a "no users yet"
+  // count before either commits, and both become admin. Claiming this row
+  // is a single atomic insert - only one concurrent request can win it, and
+  // everyone else fails fast instead of racing a check against a create.
+  try {
+    await prisma.registrationLock.create({ data: { id: "bootstrap" } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return reply.status(403).send({ error: "Registration is closed. Ask an admin for an account." });
+    }
+    throw error;
   }
 
   try {
@@ -75,6 +83,8 @@ app.post<{
     }
     return reply.send(response);
   } catch (error) {
+    // The claim didn't pan out - release it so a later attempt can retry.
+    await prisma.registrationLock.delete({ where: { id: "bootstrap" } }).catch(() => {});
     request.log.error(error);
     return reply.status(400).send({ error: "Registration failed." });
   }
