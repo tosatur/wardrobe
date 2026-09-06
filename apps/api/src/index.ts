@@ -29,6 +29,22 @@ await app.register(multipart, {
   limits: { fileSize: maxUploadBytes },
 });
 
+const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+// Better Auth already validates Origin for its own /api/auth/* routes, but
+// the app's own routes (items, outfits, admin, ...) had no equivalent check
+// - only a valid session, which cookies alone can satisfy cross-site. Only
+// cookie-bearing state-changing requests need this: a request with no
+// cookie can't ride a session, and safe methods don't mutate anything.
+app.addHook("onRequest", async (request, reply) => {
+  if (!UNSAFE_METHODS.has(request.method) || !request.headers.cookie) return;
+
+  const origin = request.headers.origin;
+  if (!origin || origin !== webUrl) {
+    return reply.status(403).send({ error: "Invalid origin." });
+  }
+});
+
 await app.register(itemRoutes);
 await app.register(outfitRoutes);
 await app.register(wearRoutes);
