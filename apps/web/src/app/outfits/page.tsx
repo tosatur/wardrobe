@@ -119,7 +119,7 @@ function OutfitsPageContent() {
   const { hoverRect, handleHoverChange } = useHoverReticle();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto flex h-full max-w-6xl flex-col px-4 py-8">
       <PageHeader
         title="Your outfits"
         watermark="Outfits"
@@ -130,17 +130,19 @@ function OutfitsPageContent() {
              and never mounts the real target route, which would otherwise
              leave this page showing behind a blank modal slot instead of
              opening the outfit editor. */
-          <>
-            <ViewToggle
-              value={view}
-              onChange={(next) => updateParam("view", next)}
-              modes={["grid", "list"]}
-            />
-            <Button type="button" disabled={isCheckingItems} onClick={() => void handleAddOutfit()}>
-              <PlusIcon />
-              Add outfit
-            </Button>
-          </>
+          !isOutfitsEmpty && (
+            <>
+              <ViewToggle
+                value={view}
+                onChange={(next) => updateParam("view", next)}
+                modes={["grid", "list"]}
+              />
+              <Button type="button" disabled={isCheckingItems} onClick={() => void handleAddOutfit()}>
+                <PlusIcon />
+                Add outfit
+              </Button>
+            </>
+          )
         }
       />
 
@@ -180,23 +182,25 @@ function OutfitsPageContent() {
       )}
 
       {isOutfitsEmpty && (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <SparklesIcon />
-            </EmptyMedia>
-            <EmptyTitle>You haven&apos;t created any outfits yet</EmptyTitle>
-            <EmptyDescription>
-              Put together items from your closet to build your first look.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button type="button" disabled={isCheckingItems} onClick={() => void handleAddOutfit()}>
-              <PlusIcon />
-              Create outfit
-            </Button>
-          </EmptyContent>
-        </Empty>
+        <div className="flex flex-1 items-center justify-center">
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <SparklesIcon />
+              </EmptyMedia>
+              <EmptyTitle>You haven&apos;t created any outfits yet</EmptyTitle>
+              <EmptyDescription>
+                Put together items from your closet to build your first look.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button type="button" disabled={isCheckingItems} onClick={() => void handleAddOutfit()}>
+                <PlusIcon />
+                Create outfit
+              </Button>
+            </EmptyContent>
+          </Empty>
+        </div>
       )}
 
       {!isPending && (!outfitsError || outfits) && outfits?.length === 0 && q && (

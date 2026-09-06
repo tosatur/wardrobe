@@ -110,39 +110,41 @@ function ItemsPageContent() {
   const { hoverRect, handleHoverChange } = useHoverReticle();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto flex h-full max-w-6xl flex-col px-4 py-8">
       <PageHeader
         title="Your closet"
         watermark="Closet"
         actions={
-          <>
-            {/* A forced hard navigation, not Link: the (.)items/[id]
-                interceptor treats any soft navigation to /items/* as an
-                overlay on this page, and there's no item with id "archive"
-                to show - see the analogous comment in outfits/page.tsx. */}
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label="View archive"
-                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
-                    onClick={() => (window.location.href = "/items/archive")}
-                  />
-                }
-              >
-                <ArchiveIcon />
-              </TooltipTrigger>
-              <TooltipContent>View archive</TooltipContent>
-            </Tooltip>
-            <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
-            <Button render={<Link href="/items/new" />}>
-              <PlusIcon />
-              Add item
-            </Button>
-          </>
+          !isClosetEmpty && (
+            <>
+              {/* A forced hard navigation, not Link: the (.)items/[id]
+                  interceptor treats any soft navigation to /items/* as an
+                  overlay on this page, and there's no item with id "archive"
+                  to show - see the analogous comment in outfits/page.tsx. */}
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label="View archive"
+                      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
+                      onClick={() => (window.location.href = "/items/archive")}
+                    />
+                  }
+                >
+                  <ArchiveIcon />
+                </TooltipTrigger>
+                <TooltipContent>View archive</TooltipContent>
+              </Tooltip>
+              <ViewToggle value={view} onChange={(next) => updateParam("view", next)} />
+              <Button render={<Link href="/items/new" />}>
+                <PlusIcon />
+                Add item
+              </Button>
+            </>
+          )
         }
       />
 
@@ -224,23 +226,25 @@ function ItemsPageContent() {
       )}
 
       {isClosetEmpty && (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ShirtIcon />
-            </EmptyMedia>
-            <EmptyTitle>Your closet is empty</EmptyTitle>
-            <EmptyDescription>
-              Add your first item to start building your digital wardrobe.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button render={<Link href="/items/new" />}>
-              <PlusIcon />
-              Add item
-            </Button>
-          </EmptyContent>
-        </Empty>
+        <div className="flex flex-1 items-center justify-center">
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <ShirtIcon />
+              </EmptyMedia>
+              <EmptyTitle>Your closet is empty</EmptyTitle>
+              <EmptyDescription>
+                Add your first item to start building your digital wardrobe.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button render={<Link href="/items/new" />}>
+                <PlusIcon />
+                Add item
+              </Button>
+            </EmptyContent>
+          </Empty>
+        </div>
       )}
 
       {!isPending && (!itemsError || items) && sortedItems.length === 0 && hasActiveFilters && (
