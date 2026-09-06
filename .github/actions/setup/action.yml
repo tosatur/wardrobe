@@ -1,0 +1,23 @@
+name: Setup
+description: Install pnpm/node, install dependencies, and generate the Prisma client
+inputs:
+  generate:
+    description: Whether to run db:generate after installing dependencies
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - if: inputs.generate == 'true'
+      run: pnpm --filter @wardrobe/db run db:generate
+      shell: bash

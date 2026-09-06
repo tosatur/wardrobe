@@ -6,7 +6,23 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          generate: "false"
+      - run: pnpm run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm run typecheck
+
+  test:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -26,20 +42,14 @@ jobs:
       DATABASE_URL: postgresql://wardrobe:wardrobe@localhost:5432/wardrobe
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm --filter @wardrobe/db run db:generate
+      - uses: ./.github/actions/setup
       - run: pnpm --filter @wardrobe/db run db:migrate:deploy
-
-      - run: pnpm run lint
-      - run: pnpm run typecheck
+      - run: pnpm --filter @wardrobe/db run db:seed
       - run: pnpm run test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
       - run: pnpm run build
