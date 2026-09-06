@@ -52,6 +52,10 @@ export async function userRoutes(app: FastifyInstance) {
     const session = await requireSession(request, reply);
     if (!session) return;
 
+    if (request.params.id !== session.user.id && session.user.role !== "admin") {
+      return reply.status(404).send({ error: "Photo not found." });
+    }
+
     const user = await prisma.user.findUnique({ where: { id: request.params.id } });
     if (!user?.avatarKey) {
       return reply.status(404).send({ error: "Photo not found." });

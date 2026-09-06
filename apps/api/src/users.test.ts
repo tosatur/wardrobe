@@ -131,4 +131,39 @@ describe("GET /users/:id/photo", () => {
     expect(response.statusCode).toBe(404);
     await app.close();
   });
+
+  it("returns 404 for another user's photo", async () => {
+    const { userRoutes } = await import("./users.js");
+
+    const app = Fastify();
+    await app.register(userRoutes);
+
+    const response = await app.inject({ method: "GET", url: "/users/user-2/photo" });
+
+    expect(response.statusCode).toBe(404);
+    expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    await app.close();
+  });
+
+  it("lets an admin view another user's photo", async () => {
+    const { requireSession } = await import("./authorization.js");
+    vi.mocked(requireSession).mockResolvedValue({
+      user: { id: "admin-1", role: "admin" },
+    } as never);
+
+    const { userRoutes } = await import("./users.js");
+
+    vi.mocked(prismaMock.user.findUnique).mockResolvedValue({
+      avatarKey: "some-key.jpg",
+      avatarMime: "image/jpeg",
+    } as never);
+
+    const app = Fastify();
+    await app.register(userRoutes);
+
+    const response = await app.inject({ method: "GET", url: "/users/user-2/photo" });
+
+    expect(response.statusCode).toBe(200);
+    await app.close();
+  });
 });
