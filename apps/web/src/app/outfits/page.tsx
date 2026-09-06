@@ -1,13 +1,32 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, SparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/components/ui/empty";
 import { OutfitCard } from "@/components/outfit-card";
 import { OutfitListRow } from "@/components/outfit-list-row";
 import { ViewToggle, type ViewMode } from "@/components/view-toggle";
@@ -16,6 +35,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { QueryError } from "@/components/query-error";
 import { listOutfits } from "@/lib/outfits-client";
+import { listItems } from "@/lib/items-client";
 import { useFrozenSearchParams } from "@/hooks/use-frozen-search-params";
 import { useHoverReticle } from "@/hooks/use-hover-reticle";
 import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
@@ -35,7 +55,36 @@ export default function OutfitsPage() {
 
 function OutfitsPageContent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useFrozenSearchParams("/outfits");
+  const [isCheckingItems, setIsCheckingItems] = useState(false);
+  const [noItemsDialogOpen, setNoItemsDialogOpen] = useState(false);
+
+  // Building an outfit needs at least one item on the canvas, so check
+  // before opening the (empty) builder rather than after. Fetched fresh on
+  // every click instead of cached in state, since an item could have been
+  // added or archived since the last check.
+  async function handleAddOutfit() {
+    setIsCheckingItems(true);
+    try {
+      const items = await queryClient.fetchQuery({
+        queryKey: ["items", "outfit-gate"],
+        queryFn: () => listItems(),
+      });
+      if (items.length === 0) {
+        setNoItemsDialogOpen(true);
+      } else {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
+        window.location.href = "/outfits/new";
+      }
+    } catch {
+      // Couldn't tell either way - don't block outfit creation on it.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
+      window.location.href = "/outfits/new";
+    } finally {
+      setIsCheckingItems(false);
+    }
+  }
 
   const q = searchParams.get("q") ?? "";
   const rawView = searchParams.get("view");
@@ -60,6 +109,7 @@ function OutfitsPageContent() {
     placeholderData: keepPreviousData,
   });
   const isPending = useMinDurationPending(isOutfitsQueryPending);
+  const isOutfitsEmpty = !isPending && (!outfitsError || outfits) && outfits?.length === 0 && !q;
 
   useEffect(() => {
     if (outfitsError && outfits) toast.error("Couldn't refresh results.");
@@ -86,25 +136,23 @@ function OutfitsPageContent() {
               onChange={(next) => updateParam("view", next)}
               modes={["grid", "list"]}
             />
-            <Button
-              type="button"
-              // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional hard nav, see comment above
-              onClick={() => (window.location.href = "/outfits/new")}
-            >
-            <PlusIcon />
-            Add outfit
+            <Button type="button" disabled={isCheckingItems} onClick={() => void handleAddOutfit()}>
+              <PlusIcon />
+              Add outfit
             </Button>
           </>
         }
       />
 
-      <div className="glass mb-6 p-3">
-        <Input
-          placeholder="Search…"
-          defaultValue={q}
-          onChange={(e) => updateParam("q", e.target.value)}
-        />
-      </div>
+      {!isOutfitsEmpty && (
+        <div className="glass mb-6 p-3">
+          <Input
+            placeholder="Search…"
+            defaultValue={q}
+            onChange={(e) => updateParam("q", e.target.value)}
+          />
+        </div>
+      )}
 
       {isPending && view === "list" && (
         <div className="glass p-3">
@@ -131,8 +179,28 @@ function OutfitsPageContent() {
         <QueryError onRetry={() => void refetchOutfits()} className="py-12" />
       )}
 
-      {!isPending && (!outfitsError || outfits) && outfits?.length === 0 && (
-        <EmptyState>{q ? "No outfits match your search." : "No outfits yet."}</EmptyState>
+      {isOutfitsEmpty && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <SparklesIcon />
+            </EmptyMedia>
+            <EmptyTitle>You haven&apos;t created any outfits yet</EmptyTitle>
+            <EmptyDescription>
+              Put together items from your closet to build your first look.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button type="button" disabled={isCheckingItems} onClick={() => void handleAddOutfit()}>
+              <PlusIcon />
+              Create outfit
+            </Button>
+          </EmptyContent>
+        </Empty>
+      )}
+
+      {!isPending && (!outfitsError || outfits) && outfits?.length === 0 && q && (
+        <EmptyState>No outfits match your search.</EmptyState>
       )}
 
       {!isPending && (!outfitsError || outfits) && outfits && outfits.length > 0 && view === "list" && (
@@ -162,6 +230,21 @@ function OutfitsPageContent() {
       )}
 
       <HoverReticle rect={hoverRect} />
+
+      <AlertDialog open={noItemsDialogOpen} onOpenChange={setNoItemsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add an item first?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You don&apos;t have any items in your closet yet. Add one before building an outfit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction render={<Link href="/items/new" />}>Add item</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
