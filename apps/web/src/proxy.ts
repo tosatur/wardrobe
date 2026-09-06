@@ -18,15 +18,24 @@ const PUBLIC_PATHS = ["/login", "/register"];
 // API remains the actual authority on every request it serves.
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
-    return NextResponse.next();
-  }
+  const isPublicPath = PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 
   const cookie = request.headers.get("cookie");
   const sessionRes = await fetch(`${API_URL}/api/auth/get-session`, {
     headers: cookie ? { cookie } : {},
   });
   const session = sessionRes.ok ? await sessionRes.json().catch(() => null) : null;
+
+  if (isPublicPath) {
+    // A signed-in user has no reason to see the login or register form -
+    // send them back to the app instead of leaving both reachable at once.
+    return session
+      ? NextResponse.redirect(new URL("/", request.url))
+      : NextResponse.next();
+  }
+
   if (session) {
     return NextResponse.next();
   }
