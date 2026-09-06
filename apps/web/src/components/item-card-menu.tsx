@@ -14,9 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { DeleteItemDialog } from "@/components/delete-item-dialog";
+import { DeleteEntityDialog } from "@/components/delete-entity-dialog";
 import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
-import { updateItem } from "@/lib/items-client";
+import { deleteItem, updateItem } from "@/lib/items-client";
 import { cn } from "@/lib/utils";
 
 /**
@@ -93,7 +93,15 @@ export function ItemCardMenu({ item, triggerClassName }: { item: ItemDto; trigge
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DeleteItemDialog itemId={item.id} open={deleteOpen} onOpenChange={setDeleteOpen} />
+      <DeleteEntityDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete this item?"
+        description="This permanently removes the item and its photo. This can't be undone."
+        successMessage="Item deleted."
+        invalidateQueryKey={["items"]}
+        onDelete={() => deleteItem(item.id)}
+      />
     </>
   );
 }

@@ -14,9 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { DeleteOutfitDialog } from "@/components/delete-outfit-dialog";
+import { DeleteEntityDialog } from "@/components/delete-entity-dialog";
 import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
-import { logWear } from "@/lib/outfits-client";
+import { deleteOutfit, logWear } from "@/lib/outfits-client";
 import { cn } from "@/lib/utils";
 
 /**
@@ -85,7 +85,15 @@ export function OutfitCardMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DeleteOutfitDialog outfitId={outfit.id} open={deleteOpen} onOpenChange={setDeleteOpen} />
+      <DeleteEntityDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete this outfit?"
+        description="This permanently removes the outfit. This can't be undone."
+        successMessage="Outfit deleted."
+        invalidateQueryKey={["outfits"]}
+        onDelete={() => deleteOutfit(outfit.id)}
+      />
     </>
   );
 }

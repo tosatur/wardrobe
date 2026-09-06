@@ -14,11 +14,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EntityToolbar } from "@/components/entity-toolbar";
 import { SectionEyebrow } from "@/components/section-eyebrow";
-import { DeleteItemDialog } from "@/components/delete-item-dialog";
+import { DeleteEntityDialog } from "@/components/delete-entity-dialog";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
 import { API_URL } from "@/lib/auth-client";
-import { getItem, updateItem } from "@/lib/items-client";
+import { deleteItem, getItem, updateItem } from "@/lib/items-client";
 import { EmptyState } from "@/components/empty-state";
 import { QueryError } from "@/components/query-error";
 import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
@@ -341,11 +341,15 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
         </div>
       </div>
 
-      <DeleteItemDialog
-        itemId={id}
+      <DeleteEntityDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onDeleted={() => router.replace("/items")}
+        title="Delete this item?"
+        description="This permanently removes the item and its photo. This can't be undone."
+        successMessage="Item deleted."
+        invalidateQueryKey={["items"]}
+        onDelete={() => deleteItem(id)}
       />
     </div>
   );

@@ -15,18 +15,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
-import { deleteItem } from "@/lib/items-client";
 
-export function DeleteItemDialog({
-  itemId,
+export function DeleteEntityDialog({
   open,
   onOpenChange,
   onDeleted,
+  title,
+  description,
+  successMessage,
+  invalidateQueryKey,
+  onDelete,
 }: {
-  itemId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDeleted?: () => void;
+  title: string;
+  description: string;
+  successMessage: string;
+  invalidateQueryKey: string[];
+  onDelete: () => Promise<{ error: string | null }>;
 }) {
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -34,14 +41,14 @@ export function DeleteItemDialog({
 
   async function handleDelete() {
     setIsDeleting(true);
-    const { error } = await deleteItem(itemId);
+    const { error } = await onDelete();
     setIsDeleting(false);
     if (error) {
       toast.error(error);
       return;
     }
-    toast.success("Item deleted.");
-    void queryClient.invalidateQueries({ queryKey: ["items"] });
+    toast.success(successMessage);
+    void queryClient.invalidateQueries({ queryKey: invalidateQueryKey });
     onOpenChange(false);
     onDeleted?.();
   }
@@ -50,10 +57,8 @@ export function DeleteItemDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this item?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This permanently removes the item and its photo. This can&apos;t be undone.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
