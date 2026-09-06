@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 
 export default function RegisterPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -34,12 +36,13 @@ export default function RegisterPage() {
       setError(body.error ?? "Registration failed.");
       return;
     }
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
     router.push("/");
   }
 
   return (
-    <main className="mx-auto max-w-sm px-4 py-8">
-      <Card>
+    <main className="flex min-h-dvh items-center justify-center px-4 py-8">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Register</CardTitle>
           <CardDescription>
