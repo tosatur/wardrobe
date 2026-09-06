@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSession, signOut, API_URL } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ function initials(name: string): string {
 }
 
 export function AuthStatus() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session, isPending } = useQuery({ queryKey: ["session"], queryFn: getSession });
 
@@ -62,7 +64,10 @@ export function AuthStatus() {
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
-              void signOut().then(() => queryClient.invalidateQueries({ queryKey: ["session"] }));
+              void signOut().then(() => {
+                void queryClient.invalidateQueries({ queryKey: ["session"] });
+                router.push("/login");
+              });
             }}
           >
             Log out
