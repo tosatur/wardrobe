@@ -25,12 +25,15 @@ export async function updateProfile(data: {
   return { error: null };
 }
 
-export async function changeEmail(newEmail: string): Promise<{ error: string | null }> {
+export async function changeEmail(
+  newEmail: string,
+  currentPassword: string,
+): Promise<{ error: string | null }> {
   const res = await authFetch("/api/auth/change-email", {
     method: "POST",
-    body: JSON.stringify({ newEmail }),
+    body: JSON.stringify({ newEmail, currentPassword }),
   });
-  if (!res.ok) return { error: await parseAuthErrorBody(res) };
+  if (!res.ok) return { error: await parseErrorBody(res) };
   return { error: null };
 }
 

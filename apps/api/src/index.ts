@@ -6,6 +6,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import { prisma, Prisma } from "@wardrobe/db";
 import { auth } from "./auth.js";
 import { requireSession } from "./authorization.js";
+import { verifyPassword } from "./password.js";
 import { itemRoutes } from "./items.js";
 import { outfitRoutes } from "./outfits.js";
 import { wearRoutes } from "./wears.js";
@@ -115,6 +116,49 @@ app.post<{
     return reply.status(400).send({ error: "User creation failed." });
   }
 });
+
+app.post<{ Body: { newEmail?: string; currentPassword?: string } }>(
+  "/api/auth/change-email",
+  async (request, reply) => {
+    const session = await requireSession(request, reply);
+    if (!session) return;
+
+    const { newEmail, currentPassword } = request.body ?? {};
+    if (!newEmail || !currentPassword) {
+      return reply.status(400).send({ error: "newEmail and currentPassword are required." });
+    }
+
+    // Better Auth's own change-email endpoint only requires a live session,
+    // with no proof of the password - so anyone riding a stolen or replayed
+    // session cookie could silently redirect the account's email. Require
+    // the current password here first, the same way changing it already
+    // does, before ever reaching that endpoint.
+    const account = await prisma.account.findFirst({
+      where: { userId: session.user.id, providerId: "credential" },
+    });
+    const passwordOk =
+      account?.password != null &&
+      (await verifyPassword({ password: currentPassword, hash: account.password }));
+    if (!passwordOk) {
+      return reply.status(400).send({ error: "Current password is incorrect." });
+    }
+
+    try {
+      const { headers, response } = await auth.api.changeEmail({
+        headers: fromNodeHeaders(request.headers),
+        body: { newEmail },
+        returnHeaders: true,
+      });
+      for (const cookie of headers.getSetCookie()) {
+        reply.header("set-cookie", cookie);
+      }
+      return reply.send(response);
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(400).send({ error: "Could not change email." });
+    }
+  },
+);
 
 app.route({
   method: ["GET", "POST"],

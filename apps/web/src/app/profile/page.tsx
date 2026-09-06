@@ -12,7 +12,7 @@ import { LocationPicker } from "@/components/location-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryError } from "@/components/query-error";
@@ -31,6 +31,7 @@ export default function ProfilePage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
@@ -62,11 +63,16 @@ export default function ProfilePage() {
       }
     }
     if (email !== session.user.email) {
-      const { error } = await changeEmail(email);
+      if (!emailPassword) {
+        toast.error("Enter your current password to change your email.");
+        return;
+      }
+      const { error } = await changeEmail(email, emailPassword);
       if (error) {
         toast.error(error);
         return;
       }
+      setEmailPassword("");
     }
     toast.success("Account updated.");
     void refreshSession();
@@ -226,6 +232,19 @@ export default function ProfilePage() {
                       required
                     />
                   </Field>
+                  {email !== session.user.email && (
+                    <Field>
+                      <FieldLabel htmlFor="profile-email-password">Current password</FieldLabel>
+                      <Input
+                        id="profile-email-password"
+                        type="password"
+                        value={emailPassword}
+                        onChange={(e) => setEmailPassword(e.target.value)}
+                        required
+                      />
+                      <FieldDescription>Confirm your password to change your email.</FieldDescription>
+                    </Field>
+                  )}
                   <Button type="submit">Save account</Button>
                 </FieldGroup>
               </form>
