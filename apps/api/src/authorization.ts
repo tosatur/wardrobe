@@ -5,7 +5,7 @@ import { auth } from "./auth.js";
 export async function requireSession(request: FastifyRequest, reply: FastifyReply) {
   const session = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
   if (!session) {
-    reply.status(403).send({ error: "Authentication required." });
+    reply.status(401).send({ error: "Authentication required." });
     return null;
   }
   return session;
