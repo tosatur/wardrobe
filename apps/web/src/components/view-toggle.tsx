@@ -1,9 +1,7 @@
 "use client";
 
 import { Grid2x2, LayoutGrid, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SegmentedControl } from "@/components/segmented-control";
 
 export type ViewMode = "masonry" | "grid" | "list";
 
@@ -27,26 +25,12 @@ export function ViewToggle({
   className?: string;
 }) {
   return (
-    <ButtonGroup className={className}>
-      {MODES.filter((m) => modes.includes(m.value)).map(({ value: mode, label, icon: Icon }) => (
-        <Tooltip key={mode}>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant={value === mode ? "default" : "outline"}
-                size="icon-sm"
-                aria-label={label}
-                aria-pressed={value === mode}
-                onClick={() => onChange(mode)}
-              />
-            }
-          >
-            <Icon />
-          </TooltipTrigger>
-          <TooltipContent>{label}</TooltipContent>
-        </Tooltip>
-      ))}
-    </ButtonGroup>
+    <SegmentedControl
+      iconOnly
+      value={value}
+      onChange={onChange}
+      className={className}
+      options={MODES.filter((m) => modes.includes(m.value))}
+    />
   );
 }
