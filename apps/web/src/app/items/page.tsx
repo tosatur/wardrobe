@@ -5,11 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArchiveIcon, PlusIcon } from "lucide-react";
+import { ArchiveIcon, PlusIcon, ShirtIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/components/ui/empty";
 import { MultiCombobox } from "@/components/combobox";
 import { CategoryMultiPicker } from "@/components/category-multi-picker";
 import { ItemCard } from "@/components/item-card";
@@ -84,6 +92,10 @@ function ItemsPageContent() {
   });
   const isPending = useMinDurationPending(isItemsQueryPending);
   const sortedItems = sortItems(items ?? [], sort);
+  const hasActiveFilters =
+    q !== "" || categoryIds.length > 0 || brandIds.length > 0 || selectedTags.length > 0;
+  const isClosetEmpty =
+    !isPending && (!itemsError || items) && sortedItems.length === 0 && !hasActiveFilters;
 
   useEffect(() => {
     if (itemsError && items) toast.error("Couldn't refresh results.");
@@ -134,38 +146,40 @@ function ItemsPageContent() {
         }
       />
 
-      <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
-        <Input
-          placeholder="Search…"
-          defaultValue={q}
-          onChange={(e) => updateParam("q", e.target.value)}
-        />
-        <CategoryMultiPicker
-          values={categoryIds}
-          onChange={(ids) => updateListParam("categoryIds", ids)}
-        />
-        <MultiCombobox
-          options={brandOptions}
-          values={brandIds}
-          onChange={(ids) => updateListParam("brandIds", ids)}
-          placeholder="Search brands…"
-          emptyText="No matching brand."
-          showAllBeforeSearch={false}
-        />
-        <MultiCombobox
-          options={tagOptions}
-          values={selectedTags}
-          onChange={(next) => updateListParam("tags", next)}
-          placeholder="Search tags…"
-          emptyText="No matching tag."
-          showAllBeforeSearch={false}
-        />
-        <ItemSortSelect
-          value={sort}
-          onChange={(next) => updateParam("sort", next)}
-          className="w-full"
-        />
-      </div>
+      {!isClosetEmpty && (
+        <div className="glass mb-6 grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
+          <Input
+            placeholder="Search…"
+            defaultValue={q}
+            onChange={(e) => updateParam("q", e.target.value)}
+          />
+          <CategoryMultiPicker
+            values={categoryIds}
+            onChange={(ids) => updateListParam("categoryIds", ids)}
+          />
+          <MultiCombobox
+            options={brandOptions}
+            values={brandIds}
+            onChange={(ids) => updateListParam("brandIds", ids)}
+            placeholder="Search brands…"
+            emptyText="No matching brand."
+            showAllBeforeSearch={false}
+          />
+          <MultiCombobox
+            options={tagOptions}
+            values={selectedTags}
+            onChange={(next) => updateListParam("tags", next)}
+            placeholder="Search tags…"
+            emptyText="No matching tag."
+            showAllBeforeSearch={false}
+          />
+          <ItemSortSelect
+            value={sort}
+            onChange={(next) => updateParam("sort", next)}
+            className="w-full"
+          />
+        </div>
+      )}
 
       {isPending && view === "list" && (
         <div className="glass p-3">
@@ -209,7 +223,27 @@ function ItemsPageContent() {
         <QueryError onRetry={() => void refetchItems()} className="py-12" />
       )}
 
-      {!isPending && (!itemsError || items) && sortedItems.length === 0 && (
+      {isClosetEmpty && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ShirtIcon />
+            </EmptyMedia>
+            <EmptyTitle>Your closet is empty</EmptyTitle>
+            <EmptyDescription>
+              Add your first item to start building your digital wardrobe.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button render={<Link href="/items/new" />}>
+              <PlusIcon />
+              Add item
+            </Button>
+          </EmptyContent>
+        </Empty>
+      )}
+
+      {!isPending && (!itemsError || items) && sortedItems.length === 0 && hasActiveFilters && (
         <EmptyState>No items match your filters.</EmptyState>
       )}
 
