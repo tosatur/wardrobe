@@ -10,6 +10,14 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3001",
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [webUrl],
+  // Better Auth's default rate limiting only turns on when NODE_ENV is
+  // exactly "production", which nothing in this repo's Docker setup sets -
+  // so without this it silently never activates, self-hosted or not. Its
+  // built-in defaults already cap sign-in/sign-up/change-password/
+  // change-email at 3 requests per 10s per IP, which is what we want here.
+  rateLimit: {
+    enabled: true,
+  },
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
