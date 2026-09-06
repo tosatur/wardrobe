@@ -5,8 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { listWears } from "@/lib/outfits-client";
 import { getWeather } from "@/lib/weather-client";
 import { parseDateKey, toDateKey } from "@/lib/date";
-import { weatherIcon, weatherLabel } from "@/lib/weather";
 import { OutfitCanvas } from "@/components/outfit-canvas";
+import { DayWeather } from "@/components/day-weather";
 import { EmptyState } from "@/components/empty-state";
 import { QueryError } from "@/components/query-error";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,7 +53,6 @@ export function DaySummaryContent({ date, backHref }: { date: string; backHref?:
 
   const dayWears = (wears ?? []).filter((wear) => toDateKey(new Date(wear.date)) === date);
   const weather = weatherDays?.find((w) => w.date === date);
-  const Icon = weather ? weatherIcon(weather.weatherCode) : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -68,16 +67,7 @@ export function DaySummaryContent({ date, backHref }: { date: string; backHref?:
         <QueryError onRetry={() => void refetchWears()} className="py-8" />
       ) : (
         <div className="space-y-6">
-          {weather && Icon && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {/* eslint-disable-next-line react-hooks/static-components -- weatherIcon selects a stable, statically-imported lucide icon, not one created during render */}
-              <Icon className="size-4" />
-              <span>
-                {weatherLabel(weather.weatherCode)} · {Math.round(weather.tempMaxC)}°/
-                {Math.round(weather.tempMinC)}°
-              </span>
-            </div>
-          )}
+          <DayWeather weather={weather} variant="detailed" />
 
           {dayWears.length === 0 ? (
             <EmptyState>No outfits logged.</EmptyState>
