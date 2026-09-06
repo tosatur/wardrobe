@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { AuthStatus } from "@/components/auth-status";
-import { getSession, type Session } from "@/lib/auth-client";
+import { getSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 export function Nav() {
   const pathname = usePathname();
-  const [session, setSession] = useState<Session | null | "pending">("pending");
+  // Shares the "session" query cache with AuthStatus (and every other page
+  // that reads it) rather than fetching independently - a local fetch-once
+  // effect here would miss the login/logout that just happened elsewhere in
+  // the same client-side session, since this component never remounts
+  // across client-side navigation.
+  const { data: session, isPending } = useQuery({ queryKey: ["session"], queryFn: getSession });
 
-  useEffect(() => {
-    void getSession().then(setSession);
-  }, []);
+  if (isPending || !session) {
+    return null;
+  }
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -64,7 +69,7 @@ export function Nav() {
           <Link href="/calendar" className={linkClassName("/calendar")}>
             Calendar
           </Link>
-          {session !== "pending" && session?.user.role === "admin" && (
+          {session.user.role === "admin" && (
             <Link href="/admin" className={linkClassName("/admin")}>
               Admin
             </Link>

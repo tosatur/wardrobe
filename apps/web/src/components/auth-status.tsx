@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getSession, signOut, API_URL, type Session } from "@/lib/auth-client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getSession, signOut, API_URL } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,13 +24,10 @@ function initials(name: string): string {
 }
 
 export function AuthStatus() {
-  const [session, setSession] = useState<Session | null | "pending">("pending");
+  const queryClient = useQueryClient();
+  const { data: session, isPending } = useQuery({ queryKey: ["session"], queryFn: getSession });
 
-  useEffect(() => {
-    void getSession().then(setSession);
-  }, []);
-
-  if (session === "pending") return <Skeleton className="size-8 rounded-full" />;
+  if (isPending) return <Skeleton className="size-8 rounded-full" />;
 
   if (!session) {
     return (
@@ -65,7 +62,7 @@ export function AuthStatus() {
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
-              void signOut().then(() => setSession(null));
+              void signOut().then(() => queryClient.invalidateQueries({ queryKey: ["session"] }));
             }}
           >
             Log out
