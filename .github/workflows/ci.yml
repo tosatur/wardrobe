@@ -17,6 +17,8 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://wardrobe:wardrobe@localhost:5432/wardrobe
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
@@ -49,6 +51,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://wardrobe:wardrobe@localhost:5432/wardrobe
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
