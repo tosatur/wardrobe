@@ -25,8 +25,22 @@ export async function proxy(request: NextRequest) {
   const cookie = request.headers.get("cookie");
   const sessionRes = await fetch(`${API_URL}/api/auth/get-session`, {
     headers: cookie ? { cookie } : {},
-  });
-  const session = sessionRes.ok ? await sessionRes.json().catch(() => null) : null;
+  }).catch(() => null);
+
+  // This proxy runs for every request AND every Link prefetch (the calendar
+  // grid alone fires dozens at once), all of which hit the API from this
+  // single container's IP - easily enough to trip the API's per-IP auth
+  // rate limit. A non-ok response here (429, a transient 5xx, or the fetch
+  // itself failing) is inconclusive, not proof the visitor is logged out,
+  // so it must not be treated the same as a real "no session" answer -
+  // otherwise a signed-in user gets bounced to the login screen whenever a
+  // burst of prefetches happens to collide with a real navigation. Only a
+  // successful response is authoritative; anything else falls through to
+  // the API's own per-request auth checks, which remain the real authority.
+  if (!sessionRes || !sessionRes.ok) {
+    return NextResponse.next();
+  }
+  const session = await sessionRes.json().catch(() => null);
 
   if (isPublicPath) {
     // A signed-in user has no reason to see the login or register form -
