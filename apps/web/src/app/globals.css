@@ -139,16 +139,15 @@
   * {
     @apply border-border outline-ring/50;
     }
+  html,
+  body {
+    @apply h-full w-full overflow-hidden;
+    }
   body {
     @apply bg-background text-foreground;
     }
   html {
     @apply font-sans;
-    /* Reserve the scrollbar's width on every page, scrolling or not, so
-       the sticky nav doesn't shift sideways when navigating from a page
-       tall enough to scroll (e.g. the item list) to one that exactly
-       fills the viewport (e.g. the outfit editor). */
-    scrollbar-gutter: stable;
     }
 }
 
@@ -172,5 +171,17 @@
     background-position: -1px -1px;
     color: var(--color-foreground);
     opacity: 0.05;
+  }
+
+  /* Keeps a container scrollable (wheel/touch/keyboard all still work) while
+     never painting a scrollbar track or thumb, and never reserving gutter
+     space for one - so a page that's sometimes tall enough to scroll and
+     sometimes not never shifts width or shows an empty track. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

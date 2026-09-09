@@ -24,8 +24,13 @@ import { useState, type ReactNode } from "react";
  * Also the one place that caps every page to the viewport height below the
  * nav (4rem) and makes this element, not the document, the thing that
  * scrolls - so the nav never scrolls out of view and the root/body never
- * needs its own scrollbar, no matter how tall an individual page's content
- * gets.
+ * needs its own scrollbar, no matter how tall (or wide) an individual
+ * page's content gets. html/body are pinned to 100%/hidden overflow (see
+ * globals.css), so this is the only element in the tree that's allowed to
+ * scroll at all. `.no-scrollbar` keeps that scrolling invisible (wheel,
+ * touch and keyboard scrolling still work) rather than reserving gutter
+ * space for a track - a page that's sometimes tall enough to need scrolling
+ * and sometimes not never shows an empty track or shifts width either way.
  */
 export function PageTransition({ children }: { children: ReactNode }) {
   const livePathname = usePathname();
@@ -40,7 +45,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <div
       key={section}
-      className="h-[calc(100vh-4rem)] overflow-y-auto animate-in fade-in-0 duration-300 motion-reduce:animate-none"
+      className="no-scrollbar h-[calc(100vh-4rem)] overflow-x-hidden overflow-y-auto animate-in fade-in-0 duration-300 motion-reduce:animate-none"
     >
       {children}
     </div>
