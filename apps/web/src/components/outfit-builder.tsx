@@ -200,7 +200,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
             Each is its own bordered surface, like a real app's side panels,
             filling the rest of the viewport and scrolling independently. */}
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <div className="w-full shrink-0 overflow-y-auto border-b border-border bg-card p-4 lg:h-full lg:w-72 lg:border-r lg:border-b-0">
+          <div className="w-full shrink-0 overflow-y-auto border-b border-border bg-card lg:h-full lg:w-72 lg:border-r lg:border-b-0">
             <ItemPalette />
           </div>
 

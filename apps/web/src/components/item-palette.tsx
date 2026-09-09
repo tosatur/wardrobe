@@ -104,9 +104,11 @@ export function ItemPalette() {
   const showDropZone = active?.data.current?.type === "placed";
 
   return (
-    <div ref={setDropRef} className="relative flex h-full flex-col gap-3">
+    <div ref={setDropRef} className="relative flex h-full flex-col">
       {/* Kept mounted (rather than conditionally rendered) so the
-          opacity change is a transition, not an instant mount/unmount. */}
+          opacity change is a transition, not an instant mount/unmount.
+          Spans the whole panel (not just the padded content below) so
+          the drop target covers the entire left panel, edge to edge. */}
       <div
         aria-hidden={!showDropZone}
         className={cn(
@@ -121,45 +123,47 @@ export function ItemPalette() {
         </p>
       </div>
 
-      <p className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase">
-        Your items
-      </p>
+      <div className="flex flex-col gap-3 p-4">
+        <p className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase">
+          Your items
+        </p>
 
-      <div className="flex flex-col gap-2">
-        <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <CategoryPicker value={categoryId || null} onChange={setCategoryId} />
-        <ItemSortSelect value={sort} onChange={setSort} className="w-full" />
+        <div className="flex flex-col gap-2">
+          <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <CategoryPicker value={categoryId || null} onChange={setCategoryId} />
+          <ItemSortSelect value={sort} onChange={setSort} className="w-full" />
+        </div>
+
+        {isPending && (
+          <div className="columns-2 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                className={cn(
+                  "mb-3 w-full break-inside-avoid",
+                  MASONRY_SKELETON_ASPECTS[i % MASONRY_SKELETON_ASPECTS.length],
+                )}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isPending && isError && <QueryError onRetry={() => void refetch()} />}
+
+        {!isPending && !isError && sortedItems.length === 0 && (
+          <EmptyState>
+            {q || categoryId ? "No items match." : "No items with a processed photo yet."}
+          </EmptyState>
+        )}
+
+        {!isPending && !isError && sortedItems.length > 0 && (
+          <div className="columns-2 gap-3 animate-in fade-in-0 duration-200 motion-reduce:animate-none">
+            {sortedItems.map((item) => (
+              <PaletteTile key={item.id} item={item} disabled={placedIds.has(item.id)} />
+            ))}
+          </div>
+        )}
       </div>
-
-      {isPending && (
-        <div className="columns-2 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className={cn(
-                "mb-3 w-full break-inside-avoid",
-                MASONRY_SKELETON_ASPECTS[i % MASONRY_SKELETON_ASPECTS.length],
-              )}
-            />
-          ))}
-        </div>
-      )}
-
-      {!isPending && isError && <QueryError onRetry={() => void refetch()} />}
-
-      {!isPending && !isError && sortedItems.length === 0 && (
-        <EmptyState>
-          {q || categoryId ? "No items match." : "No items with a processed photo yet."}
-        </EmptyState>
-      )}
-
-      {!isPending && !isError && sortedItems.length > 0 && (
-        <div className="columns-2 gap-3 animate-in fade-in-0 duration-200 motion-reduce:animate-none">
-          {sortedItems.map((item) => (
-            <PaletteTile key={item.id} item={item} disabled={placedIds.has(item.id)} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
