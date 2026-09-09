@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { BringToFrontIcon, InfoIcon, Trash2Icon } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
@@ -12,7 +13,11 @@ import { API_URL } from "@/lib/auth-client";
 import { useOutfitCanvasStore, type CanvasPlacement } from "@/lib/outfit-canvas-store";
 import { cn } from "@/lib/utils";
 
+const CORNER_DOT_CLASS =
+  "absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-background bg-primary";
+
 export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
+  const [open, setOpen] = useState(false);
   const removePlacement = useOutfitCanvasStore((s) => s.removePlacement);
   const setScale = useOutfitCanvasStore((s) => s.setScale);
   const setRotation = useOutfitCanvasStore((s) => s.setRotation);
@@ -35,8 +40,30 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
         zIndex: placement.zIndex,
       }}
     >
-      <div style={{ transform: `scale(${placement.scale}) rotate(${placement.rotation}deg)` }}>
-        <Popover>
+      <div
+        className="relative"
+        style={{ transform: `scale(${placement.scale}) rotate(${placement.rotation}deg)` }}
+      >
+        {/* Photoshop-style selection chrome: lives inside the same
+            transform as the item so it scales/rotates together with it.
+            Kept mounted and faded via opacity (not conditionally
+            rendered) so selecting/deselecting is a transition. Purely
+            visual for now, pointer-events-none, until drag-to-scale/
+            rotate is wired up to the corner dots. */}
+        <div
+          aria-hidden={!open}
+          className={cn(
+            "pointer-events-none absolute inset-0 z-10 border-2 border-primary opacity-0 transition-opacity duration-200 motion-reduce:transition-none",
+            open && "opacity-100",
+          )}
+        >
+          <div className={cn(CORNER_DOT_CLASS, "top-0 left-0")} />
+          <div className={cn(CORNER_DOT_CLASS, "top-0 left-full")} />
+          <div className={cn(CORNER_DOT_CLASS, "top-full left-0")} />
+          <div className={cn(CORNER_DOT_CLASS, "top-full left-full")} />
+        </div>
+
+        <Popover open={open} onOpenChange={setOpen}>
           {/* A plain click (no drag movement past dnd-kit's activation
               distance) opens the popover; dragging still works since the
               same listeners are what dnd-kit reads to tell the two apart. */}
