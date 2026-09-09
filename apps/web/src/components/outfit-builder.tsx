@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, SaveIcon } from "lucide-react";
 import { DndContext, pointerWithin } from "@dnd-kit/core";
 import { OutfitCreateSchema, OutfitUpdateSchema, type OutfitDto } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { SectionEyebrow } from "@/components/section-eyebrow";
@@ -173,7 +174,8 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
           </div>
           <ButtonGroup className="shrink-0">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving…" : mode === "create" ? "Create outfit" : "Save changes"}
+              {isSubmitting ? <Spinner data-icon="inline-start" /> : <SaveIcon />}
+              {isSubmitting ? "Saving…" : "Save"}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger
