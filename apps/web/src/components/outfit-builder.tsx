@@ -202,7 +202,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
             <ItemPalette />
           </div>
 
-          <div className="flex min-h-96 flex-1 flex-col overflow-y-auto bg-card p-8">
+          <div className="flex min-h-96 flex-1 flex-col overflow-y-auto p-8">
             <div className="mb-4 flex justify-end">
               <Button
                 type="button"
