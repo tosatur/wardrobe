@@ -38,6 +38,7 @@ export function toOutfitItemDto(oi: OutfitItemWithItem): OutfitItemDto {
     zIndex: oi.zIndex,
     scale: oi.scale,
     rotation: oi.rotation,
+    flipX: oi.flipX,
     item: {
       id: oi.item.id,
       nickname: oi.item.nickname,
@@ -130,6 +131,7 @@ export async function outfitRoutes(app: FastifyInstance) {
                 zIndex: p.zIndex,
                 scale: p.scale,
                 rotation: p.rotation,
+                flipX: p.flipX,
               })),
             },
             tags: { create: tags.map((tag) => ({ tagId: tag.id })) },

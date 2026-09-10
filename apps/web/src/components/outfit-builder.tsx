@@ -100,6 +100,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
         zIndex: p.zIndex,
         scale: p.scale,
         rotation: p.rotation,
+        flipX: p.flipX,
       })),
     };
     const schema = mode === "create" ? OutfitCreateSchema : OutfitUpdateSchema;

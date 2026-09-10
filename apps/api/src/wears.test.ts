@@ -35,6 +35,7 @@ function makeWear(overrides: Partial<Record<string, unknown>> = {}) {
         zIndex: number;
         scale: number;
         rotation: number;
+        flipX: boolean;
         item: {
           id: string;
           nickname: string | null;
@@ -66,6 +67,7 @@ describe("toCalendarWearDto", () => {
               zIndex: 1,
               scale: 1,
               rotation: 0,
+              flipX: false,
               item: {
                 id: "item-1",
                 nickname: "Denim jacket",
@@ -96,6 +98,7 @@ describe("toCalendarWearDto", () => {
             zIndex: 1,
             scale: 1,
             rotation: 0,
+            flipX: false,
             item: {
               id: "item-1",
               nickname: "Denim jacket",

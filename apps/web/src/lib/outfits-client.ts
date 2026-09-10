@@ -8,6 +8,7 @@ export type OutfitItemPlacementPayload = {
   zIndex: number;
   scale: number;
   rotation: number;
+  flipX: boolean;
 };
 
 export type OutfitPayload = {

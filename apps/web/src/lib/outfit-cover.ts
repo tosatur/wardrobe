@@ -8,6 +8,7 @@ type CoverPlacement = {
   zIndex: number;
   scale: number;
   rotation: number;
+  flipX: boolean;
   photoCutoutUrl: string | null;
 };
 
@@ -48,6 +49,7 @@ export async function composeOutfitCover(placements: CoverPlacement[]): Promise<
       ctx.save();
       ctx.translate((p.x / 100) * COVER_SIZE, (p.y / 100) * COVER_SIZE);
       ctx.rotate((p.rotation * Math.PI) / 180);
+      if (p.flipX) ctx.scale(-1, 1);
       ctx.drawImage(img, -width / 2, -height / 2, width, height);
       ctx.restore();
     }

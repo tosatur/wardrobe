@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BringToFrontIcon, InfoIcon, Trash2Icon } from "lucide-react";
+import { BringToFrontIcon, FlipHorizontal2Icon, InfoIcon, Trash2Icon } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -20,6 +20,7 @@ export function CanvasItemPopover({
   listeners,
   attributes,
   onBringToFront,
+  onToggleFlipX,
   onRemove,
 }: {
   placement: CanvasPlacement;
@@ -28,6 +29,7 @@ export function CanvasItemPopover({
   listeners: DraggableSyntheticListeners;
   attributes: DraggableAttributes;
   onBringToFront: () => void;
+  onToggleFlipX: () => void;
   onRemove: () => void;
 }) {
   return (
@@ -45,6 +47,7 @@ export function CanvasItemPopover({
             crossOrigin="use-credentials"
             alt={placement.nickname ?? placement.categoryName}
             className="pointer-events-none w-full drop-shadow-md"
+            style={placement.flipX ? { transform: "scaleX(-1)" } : undefined}
           />
         )}
       </PopoverTrigger>
@@ -85,6 +88,22 @@ export function CanvasItemPopover({
               <BringToFrontIcon />
             </TooltipTrigger>
             <TooltipContent>Bring to front</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`${OVERLAY_BUTTON_CLASS} text-white`}
+                  aria-label="Flip"
+                  onClick={onToggleFlipX}
+                />
+              }
+            >
+              <FlipHorizontal2Icon />
+            </TooltipTrigger>
+            <TooltipContent>Flip</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger

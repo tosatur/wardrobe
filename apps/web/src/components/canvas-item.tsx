@@ -105,6 +105,7 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
   const bringToFront = useOutfitCanvasStore((s) => s.bringToFront);
   const setScale = useOutfitCanvasStore((s) => s.setScale);
   const setRotation = useOutfitCanvasStore((s) => s.setRotation);
+  const toggleFlipX = useOutfitCanvasStore((s) => s.toggleFlipX);
   const selected = selectedItemId === placement.itemId;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `placed-${placement.itemId}`,
@@ -210,6 +211,7 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
           listeners={listeners}
           attributes={attributes}
           onBringToFront={() => bringToFront(placement.itemId)}
+          onToggleFlipX={() => toggleFlipX(placement.itemId)}
           onRemove={() => removePlacement(placement.itemId)}
         />
       </div>

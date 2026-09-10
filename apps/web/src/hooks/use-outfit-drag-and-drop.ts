@@ -42,6 +42,7 @@ export function useOutfitDragAndDrop() {
           sizeScale: placement.scale,
           startScale: placement.scale,
           rotation: placement.rotation,
+          flipX: placement.flipX,
         });
       }
     } else if (data?.type === "palette") {
@@ -55,6 +56,7 @@ export function useOutfitDragAndDrop() {
         sizeScale,
         startScale: 1,
         rotation: 0,
+        flipX: false,
       });
     }
   }

@@ -23,6 +23,7 @@ function StaticTile({
   zIndex,
   scale,
   rotation,
+  flipX,
   photoCutoutUrl,
   label,
 }: {
@@ -31,6 +32,7 @@ function StaticTile({
   zIndex: number;
   scale: number;
   rotation: number;
+  flipX: boolean;
   photoCutoutUrl: string | null;
   label: string;
 }) {
@@ -45,6 +47,7 @@ function StaticTile({
           crossOrigin="use-credentials"
           alt={label}
           className="pointer-events-none w-full drop-shadow-md"
+          style={flipX ? { transform: "scaleX(-1)" } : undefined}
         />
       </div>
     </div>
@@ -93,6 +96,7 @@ export function OutfitCanvas({
             zIndex={oi.zIndex}
             scale={oi.scale}
             rotation={oi.rotation}
+            flipX={oi.flipX}
             photoCutoutUrl={oi.item.photoCutoutUrl}
             label={oi.item.nickname ?? oi.item.categoryName}
           />

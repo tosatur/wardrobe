@@ -22,6 +22,7 @@ export type ActiveDragGhost = {
    *  shrunk item's ghost visibly jumps to size 1 before animating. */
   startScale: number;
   rotation: number;
+  flipX: boolean;
 } | null;
 
 function GhostImage({ ghost }: { ghost: NonNullable<ActiveDragGhost> }) {
@@ -42,7 +43,7 @@ function GhostImage({ ghost }: { ghost: NonNullable<ActiveDragGhost> }) {
       alt={ghost.label}
       className="h-full w-full object-contain drop-shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none"
       style={{
-        transform: `scale(${grown ? targetScale : ghost.startScale}) rotate(${ghost.rotation}deg)`,
+        transform: `scale(${grown ? targetScale : ghost.startScale}) rotate(${ghost.rotation}deg)${ghost.flipX ? " scaleX(-1)" : ""}`,
       }}
     />
   );

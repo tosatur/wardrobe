@@ -215,13 +215,14 @@ model Outfit {
 model OutfitItem {
   outfitId String
   itemId   String
-  outfit   Outfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)
-  item     Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  outfit   Outfit  @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  item     Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
   x        Float
   y        Float
   zIndex   Int
-  scale    Float  @default(1)
-  rotation Float  @default(0)
+  scale    Float   @default(1)
+  rotation Float   @default(0)
+  flipX    Boolean @default(false)
 
   @@id([outfitId, itemId])
   @@index([itemId])

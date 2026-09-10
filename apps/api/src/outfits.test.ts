@@ -75,6 +75,7 @@ function makeOutfit(overrides: Partial<Record<string, unknown>> = {}) {
       zIndex: number;
       scale: number;
       rotation: number;
+      flipX: boolean;
       item: {
         id: string;
         nickname: string | null;
@@ -104,6 +105,7 @@ describe("toOutfitDto", () => {
           zIndex: 1,
           scale: 1,
           rotation: 0,
+          flipX: false,
           item: {
             id: "item-1",
             nickname: "Denim jacket",
@@ -127,6 +129,7 @@ describe("toOutfitDto", () => {
         zIndex: 1,
         scale: 1,
         rotation: 0,
+        flipX: false,
         item: {
           id: "item-1",
           nickname: "Denim jacket",
@@ -150,6 +153,7 @@ describe("toOutfitDto", () => {
           zIndex: 1,
           scale: 1,
           rotation: 0,
+          flipX: false,
           item: {
             id: "item-1",
             nickname: null,
@@ -197,7 +201,9 @@ describe("POST /outfits", () => {
           name: "Weekend look",
           ownerId: "user-1",
           items: {
-            create: [{ itemId: "item-1", x: 25, y: 40, zIndex: 1, scale: 1, rotation: 0 }],
+            create: [
+              { itemId: "item-1", x: 25, y: 40, zIndex: 1, scale: 1, rotation: 0, flipX: false },
+            ],
           },
         }),
       }),

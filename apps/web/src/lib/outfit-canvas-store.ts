@@ -8,6 +8,7 @@ export type CanvasPlacement = {
   zIndex: number;
   scale: number;
   rotation: number;
+  flipX: boolean;
   nickname: string | null;
   categoryName: string;
   photoCutoutUrl: string | null;
@@ -42,6 +43,7 @@ type OutfitCanvasStore = {
   movePlacement: (itemId: string, x: number, y: number) => void;
   setScale: (itemId: string, scale: number) => void;
   setRotation: (itemId: string, rotation: number) => void;
+  toggleFlipX: (itemId: string) => void;
   bringToFront: (itemId: string) => void;
   removePlacement: (itemId: string) => void;
   selectItem: (itemId: string | null) => void;
@@ -72,6 +74,7 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
             zIndex: state.nextZIndex,
             scale: 1,
             rotation: 0,
+            flipX: false,
             nickname: item.nickname,
             categoryName: item.categoryName,
             photoCutoutUrl: item.photoCutoutUrl,
@@ -103,6 +106,14 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
       isDirty: true,
     })),
 
+  toggleFlipX: (itemId) =>
+    set((state) => ({
+      placements: state.placements.map((p) =>
+        p.itemId === itemId ? { ...p, flipX: !p.flipX } : p,
+      ),
+      isDirty: true,
+    })),
+
   bringToFront: (itemId) =>
     set((state) => ({
       placements: state.placements.map((p) =>
@@ -130,6 +141,7 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
         zIndex: oi.zIndex,
         scale: oi.scale,
         rotation: oi.rotation,
+        flipX: oi.flipX,
         nickname: oi.item.nickname,
         categoryName: oi.item.categoryName,
         photoCutoutUrl: oi.item.photoCutoutUrl,
