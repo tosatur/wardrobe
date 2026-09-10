@@ -22,7 +22,7 @@ export function ItemEditContent({ id, backHref }: { id: string; backHref?: strin
   if (isPending) {
     return (
       <div className="flex flex-col gap-8">
-        <Skeleton className="h-14 w-full" />
+        <Skeleton className="-mx-4 h-14 w-[calc(100%+2rem)]" />
         <div className="grid grid-cols-1 gap-x-10 gap-y-8 px-6 lg:grid-cols-[5fr_7fr]">
           <Skeleton className="aspect-square w-full" />
           <div className="space-y-4">
