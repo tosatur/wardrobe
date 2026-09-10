@@ -223,7 +223,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
             <div className="flex flex-1 items-center justify-center">
               <div
                 ref={canvasFrameRef}
-                className="aspect-square h-full max-h-[min(70vh,640px)] w-auto"
+                className="aspect-square h-full max-h-[min(80vh,760px)] w-auto"
               >
                 <OutfitCanvas />
               </div>

@@ -86,7 +86,6 @@ export function DaySummaryContent({ date, backHref }: { date: string; backHref?:
                     <div className="size-14 shrink-0 overflow-hidden rounded-sm">
                       <OutfitCanvas
                         readOnly
-                        thumbnail
                         items={wear.outfit.items}
                         coverPhotoUrl={wear.outfit.coverPhotoUrl}
                       />
