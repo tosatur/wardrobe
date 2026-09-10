@@ -118,7 +118,8 @@ export function ItemPalette() {
         )}
       >
         <Trash2 className={cn("size-8", isOver ? "text-destructive" : "text-muted-foreground")} />
-        <p className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase">
+        <p
+          className={cn("font-mono text-xs font-bold tracking-widest uppercase", isOver ? "text-destructive" : "text-muted-foreground")}>
           Drop to remove
         </p>
       </div>
