@@ -12,7 +12,16 @@ const LIFT_SCALE = 1.05;
 export type ActiveDragGhost = {
   photoCutoutUrl: string | null;
   label: string;
+  /** Scale to pop up to once "grown" - for a placed item this is its own
+   *  current scale (times LIFT_SCALE); for a palette tile it's the ratio
+   *  that grows the tile up to its eventual on-canvas size. */
   sizeScale: number;
+  /** Scale the ghost renders at before the pop-up animation starts. A
+   *  placed item is already at its own scale when picked up, so the
+   *  animation should pop from there, not from a flat 1 - otherwise a
+   *  shrunk item's ghost visibly jumps to size 1 before animating. */
+  startScale: number;
+  rotation: number;
 } | null;
 
 function GhostImage({ ghost }: { ghost: NonNullable<ActiveDragGhost> }) {
@@ -32,7 +41,9 @@ function GhostImage({ ghost }: { ghost: NonNullable<ActiveDragGhost> }) {
       crossOrigin="use-credentials"
       alt={ghost.label}
       className="h-full w-full object-contain drop-shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none"
-      style={{ transform: `scale(${grown ? targetScale : 1})` }}
+      style={{
+        transform: `scale(${grown ? targetScale : ghost.startScale}) rotate(${ghost.rotation}deg)`,
+      }}
     />
   );
 }

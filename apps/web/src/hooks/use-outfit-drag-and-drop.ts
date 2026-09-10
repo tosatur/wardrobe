@@ -39,7 +39,9 @@ export function useOutfitDragAndDrop() {
         setActiveDragGhost({
           photoCutoutUrl: placement.photoCutoutUrl,
           label: placement.nickname ?? placement.categoryName,
-          sizeScale: 1,
+          sizeScale: placement.scale,
+          startScale: placement.scale,
+          rotation: placement.rotation,
         });
       }
     } else if (data?.type === "palette") {
@@ -51,6 +53,8 @@ export function useOutfitDragAndDrop() {
         photoCutoutUrl: data.item.photoCutoutUrl,
         label: data.item.nickname ?? data.item.categoryName,
         sizeScale,
+        startScale: 1,
+        rotation: 0,
       });
     }
   }

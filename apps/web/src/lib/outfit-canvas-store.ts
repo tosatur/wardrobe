@@ -33,12 +33,18 @@ type OutfitCanvasStore = {
   // (bringToFront, fired on drag start) doesn't count, or every click on a
   // placed item would trip the unsaved-changes guard.
   isDirty: boolean;
+  /** Which placed item currently shows the selection border/handles - kept
+   *  here (rather than local state per CanvasItem) so selecting one item
+   *  is exclusive: it's the single source of truth every CanvasItem reads
+   *  and compares its own itemId against. */
+  selectedItemId: string | null;
   addPlacement: (item: PaletteItem, x: number, y: number) => void;
   movePlacement: (itemId: string, x: number, y: number) => void;
   setScale: (itemId: string, scale: number) => void;
   setRotation: (itemId: string, rotation: number) => void;
   bringToFront: (itemId: string) => void;
   removePlacement: (itemId: string) => void;
+  selectItem: (itemId: string | null) => void;
   loadPlacements: (items: OutfitItemDto[]) => void;
   /** The canvas's own "Clear all" button - a real edit, unlike `reset`. */
   clearAll: () => void;
@@ -51,6 +57,7 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
   placements: [],
   nextZIndex: 1,
   isDirty: false,
+  selectedItemId: null,
 
   addPlacement: (item, x, y) =>
     set((state) => {
@@ -107,11 +114,15 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
   removePlacement: (itemId) =>
     set((state) => ({
       placements: state.placements.filter((p) => p.itemId !== itemId),
+      selectedItemId: state.selectedItemId === itemId ? null : state.selectedItemId,
       isDirty: true,
     })),
 
+  selectItem: (itemId) => set({ selectedItemId: itemId }),
+
   loadPlacements: (items) =>
     set({
+      selectedItemId: null,
       placements: items.map((oi) => ({
         itemId: oi.itemId,
         x: oi.x,
@@ -134,8 +145,9 @@ export const useOutfitCanvasStore = create<OutfitCanvasStore>((set) => ({
     set((state) => ({
       placements: [],
       nextZIndex: 1,
+      selectedItemId: null,
       isDirty: state.isDirty || state.placements.length > 0,
     })),
 
-  reset: () => set({ placements: [], nextZIndex: 1, isDirty: false }),
+  reset: () => set({ placements: [], nextZIndex: 1, selectedItemId: null, isDirty: false }),
 }));
