@@ -2,24 +2,26 @@
 
 import { use, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@/components/ui/skeleton";
 import { OutfitBuilder } from "@/components/outfit-builder";
 import { EmptyState } from "@/components/empty-state";
+import { FullscreenLoadingOverlay } from "@/components/fullscreen-loading-overlay";
 import { QueryError } from "@/components/query-error";
 import { useOutfitCanvasStore } from "@/lib/outfit-canvas-store";
 import { getOutfit } from "@/lib/outfits-client";
+import { useMinDurationPending } from "@/hooks/use-min-duration-pending";
 
 export default function EditOutfitPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const {
     data: outfit,
     isError,
-    isPending,
+    isPending: isOutfitQueryPending,
     refetch,
   } = useQuery({
     queryKey: ["outfit", id],
     queryFn: () => getOutfit(id),
   });
+  const isPending = useMinDurationPending(isOutfitQueryPending);
   const loadPlacements = useOutfitCanvasStore((s) => s.loadPlacements);
 
   useEffect(() => {
@@ -27,13 +29,7 @@ export default function EditOutfitPage({ params }: { params: Promise<{ id: strin
   }, [outfit, loadPlacements]);
 
   if (isPending) {
-    return (
-      <main className="flex h-full flex-col lg:flex-row">
-        <Skeleton className="h-48 w-full shrink-0 lg:h-full lg:w-72" />
-        <Skeleton className="min-h-96 flex-1" />
-        <Skeleton className="h-48 w-full shrink-0 lg:h-full lg:w-80" />
-      </main>
-    );
+    return <FullscreenLoadingOverlay label="Loading outfit…" />;
   }
 
   if (isError) {
