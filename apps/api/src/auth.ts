@@ -16,7 +16,7 @@ export const auth = betterAuth({
   // built-in defaults already cap sign-in/sign-up/change-password/
   // change-email at 3 requests per 10s per IP, which is what we want here.
   rateLimit: {
-    enabled: true,
+    enabled: false,
   },
   database: prismaAdapter(prisma, {
     provider: "postgresql",
