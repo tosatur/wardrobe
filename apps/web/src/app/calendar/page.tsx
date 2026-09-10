@@ -51,8 +51,9 @@ const MAX_VISIBLE_WEARS = 3;
 // (centered under the gap above via col-span), and 4 (three outfits plus
 // the overflow badge as the fourth tile) fill both rows as a 2x2 square.
 // Two-up stays noticeably larger than the three-or-more density tier.
-function wearTileColumnWidthClass(count: number) {
-  return count === 2 ? "w-[90%]" : "w-[60%]";
+function wearTileColumnWidthClass(count: number, compact: boolean) {
+  if (count === 2) return compact ? "w-[75%]" : "w-[90%]";
+  return compact ? "w-[50%]" : "w-[60%]";
 }
 
 export default function CalendarPage() {
@@ -140,8 +141,11 @@ function CalendarPageContent() {
     wearsByDay.set(key, existing);
   }
 
+  const weekCount = days.length / 7;
+  const isCompact = weekCount === 6;
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto flex h-full w-full max-w-6xl flex-1 flex-col px-4 py-8">
       <PageHeader
         title={monthStart.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
         watermark="Calendar"
@@ -168,12 +172,15 @@ function CalendarPageContent() {
       />
 
       {isPending && (
-        <div className="glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10">
+        <div
+          className="glass grid flex-1 grid-cols-7 gap-px overflow-hidden border border-foreground/10"
+          style={{ gridTemplateRows: `auto repeat(${weekCount}, minmax(7rem, 1fr))` }}
+        >
           {WEEKDAY_LABELS.map((label) => (
             <Skeleton key={label} className="h-7 w-full rounded-none" />
           ))}
           {days.map((day) => (
-            <Skeleton key={toDateKey(day)} className="min-h-36 w-full rounded-none" />
+            <Skeleton key={toDateKey(day)} className="w-full rounded-none" />
           ))}
         </div>
       )}
@@ -189,10 +196,11 @@ function CalendarPageContent() {
         <div
           key={toMonthKey(monthStart)}
           className={cn(
-            "glass grid grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300 motion-reduce:animate-none",
+            "glass grid flex-1 grid-cols-7 gap-px overflow-hidden border border-foreground/10 animate-in fade-in-0 duration-300 motion-reduce:animate-none",
             direction === "next" ? "slide-in-from-right-8" : "slide-in-from-left-8",
             isWearsFetching && "opacity-60 transition-opacity motion-reduce:transition-none",
           )}
+          style={{ gridTemplateRows: `auto repeat(${weekCount}, minmax(7rem, 1fr))` }}
         >
           {WEEKDAY_LABELS.map((label) => (
             <div
@@ -211,7 +219,12 @@ function CalendarPageContent() {
               <div
                 key={key}
                 className={cn(
-                  "relative flex min-h-36 flex-col gap-1 bg-background p-1.5 transition-colors hover:bg-muted/60",
+                  // min-h-0: overrides the grid item's default min-height:auto,
+                  // which otherwise forces the row track to grow past its
+                  // minmax(7rem,1fr) share to fit this cell's content - see
+                  // wearTileColumnWidthClass's comment for the matching issue
+                  // one level down.
+                  "relative flex min-h-0 flex-col gap-1 bg-background p-1.5 transition-colors hover:bg-muted/60",
                   !inMonth && "bg-muted/40",
                 )}
               >
@@ -245,15 +258,18 @@ function CalendarPageContent() {
                   </span>
                   <DayWeather weather={weatherByDay.get(key)} />
                 </div>
-                <div className="pointer-events-none relative flex flex-1 items-center justify-center">
+                <div className="pointer-events-none relative flex min-h-0 flex-1 items-center justify-center">
                   {dayWears.length === 1 && (
                     <CalendarWearTile
                       wear={dayWears[0]}
-                      className="pointer-events-auto block aspect-square w-[74%] overflow-hidden rounded-sm"
+                      className={cn(
+                        "pointer-events-auto block aspect-square max-h-full min-h-0 overflow-hidden rounded-sm",
+                        isCompact ? "w-[60%]" : "w-[74%]",
+                      )}
                     />
                   )}
                   {dayWears.length > 1 && (
-                    <div className="grid w-full grid-cols-2 gap-1">
+                    <div className="grid h-full min-h-0 w-full auto-rows-fr grid-cols-2 gap-1">
                       {dayWears.slice(0, MAX_VISIBLE_WEARS).map((wear, i) => {
                         // The triangle's apex (the 3rd tile when there's no
                         // 4th) spans both columns so it centers under the
@@ -265,8 +281,10 @@ function CalendarPageContent() {
                             key={wear.id}
                             wear={wear}
                             className={cn(
-                              "pointer-events-auto mx-auto block aspect-square overflow-hidden rounded-sm",
-                              isApex ? "col-span-2 w-[30%]" : wearTileColumnWidthClass(dayWears.length),
+                              "pointer-events-auto mx-auto block aspect-square max-h-full min-h-0 overflow-hidden rounded-sm",
+                              isApex
+                                ? cn("col-span-2", isCompact ? "w-[24%]" : "w-[30%]")
+                                : wearTileColumnWidthClass(dayWears.length, isCompact),
                             )}
                           />
                         );
@@ -274,8 +292,8 @@ function CalendarPageContent() {
                       {dayWears.length > MAX_VISIBLE_WEARS && (
                         <span
                           className={cn(
-                            "mx-auto flex aspect-square items-center justify-center rounded-sm border border-border bg-muted text-xs font-medium text-muted-foreground",
-                            wearTileColumnWidthClass(dayWears.length),
+                            "mx-auto flex aspect-square max-h-full min-h-0 items-center justify-center rounded-sm border border-border bg-muted text-xs font-medium text-muted-foreground",
+                            wearTileColumnWidthClass(dayWears.length, isCompact),
                           )}
                         >
                           +{dayWears.length - MAX_VISIBLE_WEARS}
