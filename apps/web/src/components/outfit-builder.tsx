@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import { DndContext, pointerWithin } from "@dnd-kit/core";
 import { OutfitCreateSchema, OutfitUpdateSchema, type OutfitDto } from "@wardrobe/shared";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { ClearCanvasDialog } from "@/components/clear-canvas-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,6 +76,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
   const placements = useOutfitCanvasStore((s) => s.placements);
   const clearPlacements = useOutfitCanvasStore((s) => s.clearAll);
   const isCanvasDirty = useOutfitCanvasStore((s) => s.isDirty);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   useUnsavedChanges(!isSubmitSuccessful && (isDirty || isCanvasDirty));
 
@@ -211,7 +214,7 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
                 type="button"
                 variant="secondary"
                 size="sm"
-                onClick={clearPlacements}
+                onClick={() => setClearDialogOpen(true)}
                 disabled={placements.length === 0}
               >
                 Clear all
@@ -264,6 +267,11 @@ export function OutfitBuilder({ outfit }: { outfit?: OutfitDto }) {
         </div>
       </form>
       <OutfitDragOverlay ghost={activeDragGhost} />
+      <ClearCanvasDialog
+        open={clearDialogOpen}
+        onOpenChange={setClearDialogOpen}
+        onClear={clearPlacements}
+      />
     </DndContext>
   );
 }
