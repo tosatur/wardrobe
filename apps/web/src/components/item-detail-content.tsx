@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { EntityToolbar } from "@/components/entity-toolbar";
 import { SectionEyebrow } from "@/components/section-eyebrow";
 import { DeleteEntityDialog } from "@/components/delete-entity-dialog";
+import { PhotoCrossfade } from "@/components/photo-crossfade";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
 import { API_URL } from "@/lib/auth-client";
@@ -172,14 +173,13 @@ export function ItemDetailContent({ id, backHref }: { id: string; backHref?: str
         {/* The photo is the hero, its own frame, not tucked inside the info
             panel, so it reads as the main event, not an attachment. Read-only
             here; replacing the photo is an edit-page action. */}
-        <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted p-3">
+        <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted">
           {item.photoCutoutUrl || item.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image
-            <img
-              src={`${API_URL}${showOriginal ? (item.photoUrl ?? item.photoCutoutUrl) : (item.photoCutoutUrl ?? item.photoUrl)}`}
-              crossOrigin="use-credentials"
+            <PhotoCrossfade
+              originalSrc={item.photoUrl ? `${API_URL}${item.photoUrl}` : null}
+              cutoutSrc={item.photoCutoutUrl ? `${API_URL}${item.photoCutoutUrl}` : null}
+              showOriginal={showOriginal}
               alt="Item photo"
-              className="size-full object-contain"
             />
           ) : (
             <div className="flex size-full items-center justify-center font-mono text-xs tracking-widest text-muted-foreground uppercase">

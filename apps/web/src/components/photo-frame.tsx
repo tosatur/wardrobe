@@ -34,9 +34,9 @@ export function PhotoFrame({
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted p-3">
+    <div className="relative aspect-square w-full overflow-hidden border border-foreground/20 bg-muted">
       {photo ?? (
-        <div className="flex size-full flex-col items-center justify-center gap-3">
+        <div className="flex size-full flex-col items-center justify-center gap-3 p-3">
           <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
             {noPhotoLabel}
           </p>

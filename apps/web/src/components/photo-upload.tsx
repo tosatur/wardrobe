@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PhotoStatus } from "@wardrobe/shared";
+import { PhotoCrossfade } from "@/components/photo-crossfade";
 import { PhotoFrame } from "@/components/photo-frame";
 import { PhotoViewToggle } from "@/components/photo-view-toggle";
 import { PhotoProcessingBadge } from "@/components/photo-processing-badge";
@@ -59,24 +60,21 @@ export function PhotoUpload({
     onUploaded(data?.photoUrl ?? null);
   }
 
-  const chosenPhotoUrl = showOriginal
-    ? (currentPhotoUrl ?? currentPhotoCutoutUrl)
-    : (currentPhotoCutoutUrl ?? currentPhotoUrl);
-  const displayUrl = preview ?? (chosenPhotoUrl ? `${API_URL}${chosenPhotoUrl}` : null);
-
   return (
     <PhotoFrame
       disabled={uploading}
       replaceLabel={uploading ? "Uploading…" : "Replace photo"}
       onFileSelected={(file) => void handleFileSelected(file)}
       photo={
-        displayUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- authenticated, cross-origin image
-          <img
-            src={displayUrl}
-            crossOrigin="use-credentials"
+        preview ? (
+          // eslint-disable-next-line @next/next/no-img-element -- local object URL, not an authenticated remote image
+          <img src={preview} alt="Item photo" className="size-full object-contain" />
+        ) : (
+          <PhotoCrossfade
+            originalSrc={currentPhotoUrl ? `${API_URL}${currentPhotoUrl}` : null}
+            cutoutSrc={currentPhotoCutoutUrl ? `${API_URL}${currentPhotoCutoutUrl}` : null}
+            showOriginal={showOriginal}
             alt="Item photo"
-            className="size-full object-contain"
           />
         )
       }
