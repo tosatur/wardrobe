@@ -1,8 +1,10 @@
 "use client";
 
+import type { RefObject } from "react";
 import Link from "next/link";
 import { BringToFrontIcon, FlipHorizontal2Icon, InfoIcon, Trash2Icon } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
+import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,15 +21,22 @@ export function CanvasItemPopover({
   onOpenChange,
   listeners,
   attributes,
+  anchorRef,
   onBringToFront,
   onToggleFlipX,
   onRemove,
 }: {
   placement: CanvasPlacement;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: NonNullable<PopoverPrimitive.Root.Props["onOpenChange"]>;
   listeners: DraggableSyntheticListeners;
   attributes: DraggableAttributes;
+  /** An untransformed element kept in sync with the item's current
+   *  on-screen size (see CanvasItem), used as the popover's anchor instead
+   *  of the trigger itself - Base UI's position tracking is ResizeObserver-
+   *  based and can't see a transform-only (scale/rotate) change on an
+   *  ancestor, only a real layout resize, which this element gets. */
+  anchorRef: RefObject<HTMLDivElement | null>;
   onBringToFront: () => void;
   onToggleFlipX: () => void;
   onRemove: () => void;
@@ -54,6 +63,7 @@ export function CanvasItemPopover({
       <PopoverContent
         side="top"
         sideOffset={16}
+        anchor={anchorRef}
         className="w-fit rounded-none bg-transparent p-0 shadow-none ring-0"
       >
         <ButtonGroup>

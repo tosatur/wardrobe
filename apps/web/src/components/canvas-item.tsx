@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
+import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { CanvasItemPopover } from "@/components/canvas-item-popover";
 import { useCanvasItemTransform } from "@/hooks/use-canvas-item-transform";
 import { useOutfitCanvasStore, type CanvasPlacement } from "@/lib/outfit-canvas-store";
@@ -91,14 +92,21 @@ const CORNERS = [
 ] as const;
 
 export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
-  // Popover open/closed (the info/bring-to-front/remove actions) is local
-  // and separate from "selected" (the border+handles, in the shared store
-  // so selecting one item is exclusive across the canvas). Base UI's
-  // outside-pointerdown dismiss doesn't know about our handles - grabbing
-  // one reads as an outside click and closes the popover, so closing must
-  // never clear the selection or every transform drag would deselect.
-  const [open, setOpen] = useState(false);
+  // Selection (the border+handles) and the popover (info/bring-to-front/
+  // remove) are the exact same state - selectedItemId in the shared store,
+  // so selecting one item is also exclusive across the canvas. The popover
+  // is a controlled component driven by it, not a separate local flag.
   const boxRef = useRef<HTMLDivElement>(null);
+  const chromeRef = useRef<HTMLDivElement>(null);
+  // Base UI's Popover tracks its anchor via ResizeObserver/
+  // IntersectionObserver, neither of which reliably notices a
+  // transform-only (scale/rotate) change on an ancestor with no real
+  // layout resize - anchoring directly to boxRef left the popover lagging
+  // behind during a drag. This separate, untransformed anchor gets its
+  // real width/height set (below) to match boxRef's current on-screen
+  // size on every scale/rotate change, which IS a genuine layout mutation
+  // ResizeObserver is guaranteed to catch.
+  const anchorRef = useRef<HTMLDivElement>(null);
   const selectedItemId = useOutfitCanvasStore((s) => s.selectedItemId);
   const selectItem = useOutfitCanvasStore((s) => s.selectItem);
   const removePlacement = useOutfitCanvasStore((s) => s.removePlacement);
@@ -112,9 +120,25 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
     data: { type: "placed", itemId: placement.itemId },
   });
 
-  function handleOpenChange(next: boolean) {
-    setOpen(next);
-    if (next) selectItem(placement.itemId);
+  function handleOpenChange(
+    next: boolean,
+    eventDetails: PopoverPrimitive.Root.ChangeEventDetails,
+  ) {
+    // Base UI treats a pointerdown on our corner/rotate handles as an
+    // "outside press" (they're siblings of the trigger, not inside the
+    // popover) and would otherwise close it mid-drag. Cancel just that
+    // case so the popover - and the selection it's synced to - stays up
+    // while the user is actively scaling or rotating.
+    if (
+      !next &&
+      eventDetails.reason === "outside-press" &&
+      eventDetails.event.target instanceof Node &&
+      chromeRef.current?.contains(eventDetails.event.target)
+    ) {
+      eventDetails.cancel();
+      return;
+    }
+    selectItem(next ? placement.itemId : null);
   }
 
   const { handleScalePointerDown, handleRotatePointerDown } = useCanvasItemTransform({
@@ -123,13 +147,35 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
     rotation: placement.rotation,
     onScaleChange: (scale) => setScale(placement.itemId, scale),
     onRotationChange: (rotation) => setRotation(placement.itemId, rotation),
-    // The popover's position is computed once when it opens and doesn't
-    // track an ancestor's CSS transform changing size, so it'd go stale
-    // mid-drag; simplest fix is to just hide it for the duration. Doesn't
-    // touch `selected`, so the chrome (and the ability to keep dragging)
-    // survives even though this looks like an "outside click" to Base UI.
-    onTransformStart: () => setOpen(false),
   });
+
+  function syncAnchorSize() {
+    const box = boxRef.current;
+    const anchor = anchorRef.current;
+    if (!box || !anchor) return;
+    const rect = box.getBoundingClientRect();
+    anchor.style.width = `${rect.width}px`;
+    anchor.style.height = `${rect.height}px`;
+  }
+
+  // Drives most updates: scale/rotation change on (almost) every render
+  // during a drag, and this stays in the same render pass as that change.
+  useLayoutEffect(syncAnchorSize, [placement.scale, placement.rotation]);
+
+  // Covers the gap that misses: the item's <img> loads asynchronously, so
+  // at mount boxRef's real layout box (which its height is derived from)
+  // is briefly 0 - collapsing the anchor and, on a first open before any
+  // scale/rotate edit, opening the popover pinned to the item's center.
+  // ResizeObserver catches that real resize once the image loads, where
+  // the effect above (keyed only on scale/rotation, neither of which
+  // change here) would otherwise never re-run.
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const observer = new ResizeObserver(syncAnchorSize);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div
@@ -144,6 +190,14 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
         zIndex: placement.zIndex,
       }}
     >
+      {/* Untransformed popover anchor, sized to match boxRef's current
+          on-screen footprint via the layout effect above - see its
+          comment for why this indirection exists. */}
+      <div
+        ref={anchorRef}
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+      />
       <div
         ref={boxRef}
         className="relative"
@@ -158,6 +212,7 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
             itself, and only while selected, so it doesn't intercept
             clicks on the image underneath when deselected. */}
         <div
+          ref={chromeRef}
           aria-hidden={!selected}
           className={cn(
             "pointer-events-none absolute inset-0 z-10 border-primary opacity-0 transition-opacity duration-200 motion-reduce:transition-none",
@@ -206,10 +261,11 @@ export function CanvasItem({ placement }: { placement: CanvasPlacement }) {
 
         <CanvasItemPopover
           placement={placement}
-          open={open}
+          open={selected}
           onOpenChange={handleOpenChange}
           listeners={listeners}
           attributes={attributes}
+          anchorRef={anchorRef}
           onBringToFront={() => bringToFront(placement.itemId)}
           onToggleFlipX={() => toggleFlipX(placement.itemId)}
           onRemove={() => removePlacement(placement.itemId)}
